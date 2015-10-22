@@ -32,6 +32,6 @@ public class ServerStarter {
                 System.out.println("Registry started on port " + port + ".");
             }
         }
-        System.out.println("HelloServer ready.");
+        System.out.println("Dice Server ready.");
     }
 }
