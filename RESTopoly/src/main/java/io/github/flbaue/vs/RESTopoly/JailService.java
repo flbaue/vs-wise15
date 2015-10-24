@@ -23,6 +23,8 @@ public class JailService {
     }
 
     private void run() {
+        System.out.println("Jail Service is starting");
+
         post("/jail", this::createPlayer);
         get("/jail/:playerId", this::getPlayer);
         post("/jail/:playerId", this::playerRollsDice);

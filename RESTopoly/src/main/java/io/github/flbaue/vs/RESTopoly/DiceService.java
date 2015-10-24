@@ -20,6 +20,8 @@ public class DiceService {
     }
 
     private void run() {
+        System.out.println("Dice Service is starting");
+
         get("/dice", this::rollDice);
     }
 
