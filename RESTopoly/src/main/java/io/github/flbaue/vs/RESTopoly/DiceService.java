@@ -1,6 +1,8 @@
 package io.github.flbaue.vs.RESTopoly;
 
 import com.google.gson.Gson;
+import spark.Request;
+import spark.Response;
 
 import java.util.Random;
 
@@ -18,11 +20,12 @@ public class DiceService {
     }
 
     private void run() {
-        get("/dice", (request, response) -> {
-            Roll roll = new Roll(new Random().nextInt(6) + 1);
+        get("/dice", this::rollDice);
+    }
 
-            String json = gson.toJson(roll);
-            return json;
-        });
+    private Object rollDice(Request request, Response response) throws Exception {
+        Roll roll = new Roll(new Random().nextInt(6) + 1);
+        String json = gson.toJson(roll);
+        return json;
     }
 }
