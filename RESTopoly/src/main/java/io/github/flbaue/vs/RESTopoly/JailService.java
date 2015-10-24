@@ -1,7 +1,6 @@
 package io.github.flbaue.vs.RESTopoly;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -12,24 +11,16 @@ import static spark.Spark.*;
 /**
  * Created by florian on 24.10.15.
  */
-public class RESTopolyApplication {
+public class JailService {
 
     private Set<Player> playerSet = new HashSet<>();
     private Gson gson = new Gson();
 
     public static void main(String[] args) {
-        new RESTopolyApplication().run();
+        new JailService().run();
     }
 
     private void run() {
-
-        get("/dice", (request, response) -> {
-            Roll roll = new Roll(new Random().nextInt(6) + 1);
-
-            String json = gson.toJson(roll);
-            return json;
-        });
-
 
         post("/jail", (request, response) -> {
             Player player = gson.fromJson(request.body(), Player.class);
@@ -71,7 +62,7 @@ public class RESTopolyApplication {
                 response.status(402);
                 return gson.toJson(player);
             }
-            
+
             if (pasch == true) {
                 playerSet.remove(player);
                 player.setIsInJail(false);
