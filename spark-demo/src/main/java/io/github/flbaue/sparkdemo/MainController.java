@@ -24,6 +24,6 @@ public class MainController extends Controller {
 
     public Object createListItem(Request request, Response response) {
         items.add(request.body());
-        return "";
+        return items;
     }
 }
