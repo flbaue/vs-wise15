@@ -1,0 +1,109 @@
+#%RAML 0.8
+
+title: JailService API
+baseURI: http://example.api.com
+version: 01
+
+/jail:
+ 	post:
+ 		description: create a player
+ 			body:
+ 				application/json:
+ 					schema: |
+ 						{
+ 							"type": "object",
+                  			"properties": {
+                    			"playerId":  { "type": "string" }
+ 						}	
+ 					example: |
+ 					{
+ 						"playerId": "abc",
+ 					}
+ 		responses:
+			201:		
+				schema: |
+ 						{
+ 							"type": "object",
+                  			"properties": {
+                    			"playerId":  { "type": "string" },
+                    			"roundsInJail": { "type": "number" },
+                    			"isInJail": { "type": "boolean" }
+ 						}		
+ 		responses:
+			420:
+				schema: |
+ 						{
+ 							"type": "object",
+                  			"properties": {
+                    			"playerId":  "Not created. PlayerId was missing",
+                    			"roundsInJail":  0,
+                    			"isInJail": false
+ 						}
+
+/{playerId}:
+	get:
+		description: get a player by Id
+		responses:
+			200:
+ 				body:
+ 					application/json:
+ 						schema: |
+ 						{
+ 							"type": "object",
+                  			"properties": {
+                    			"playerId":  { "type": "string" },
+                    			"roundsInJail": { "type": "number" },
+                    			"isInJail": { "type": "boolean" }
+ 						}	
+ 						example: |
+ 						{
+ 							"playerId": "abc",
+ 							"roundsInJail":0,
+ 							"isInJail":false
+ 						}
+ 			404: 
+ 				description: not found
+	post:
+		description: player rolls the dices
+		queryParameters: pasch
+			type: boolean
+			description: whether the dices are a pasch 
+			requiered: true
+		responses:
+			200:
+ 				body:
+ 					application/json:
+	 					schema: |
+ 						{
+ 							"type": "object",
+                  			"properties": {
+                    			"playerId":  { "type": "string" },
+                    			"roundsInJail": { "type": "number" },
+                    			"isInJail": { "type": "boolean" }
+ 						}	
+						example: |
+ 						{
+ 							"playerId": "abc",
+ 							"roundsInJail":0,
+ 							"isInJail":false
+ 						}	
+ 			420: 
+ 				description: no query param is set
+ 					schema: |
+ 					{
+ 						"type": "object",
+                  		"properties": {
+                    		"playerId":  "Pasch query param must be set",
+                    		"roundsInJail":  0,
+                    		"isInJail": false
+ 					}
+ 			404: 
+ 				description: playerId doesnt exist
+ 					schema: |
+ 					{
+ 						"type": "object",
+                  		"properties": {
+                    		"playerId":  "not found",
+                    		"roundsInJail":  0,
+                    		"isInJail": false
+ 					}
