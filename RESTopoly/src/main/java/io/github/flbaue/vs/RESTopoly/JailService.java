@@ -1,10 +1,12 @@
 package io.github.flbaue.vs.RESTopoly;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import spark.Request;
 import spark.Response;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static spark.Spark.get;
@@ -25,13 +27,30 @@ public class JailService {
     private void run() {
         System.out.println("Jail Service is starting");
 
+        get("/", this::root);
         post("/jail", this::createPlayer);
         get("/jail/:playerId", this::getPlayer);
         post("/jail/:playerId", this::playerRollsDice);
     }
 
+    private Object root(Request request, Response response) throws Exception {
+        return "It's Alive!";
+    }
+
     private Object createPlayer(Request request, Response response) throws Exception {
-        Player player = gson.fromJson(request.body(), Player.class);
+        Player player = null;
+        try {
+            player = gson.fromJson(request.body(), Player.class);
+        } catch (JsonSyntaxException e) {
+            response.status(420);
+            return gson.toJson(new Player("Not created. PlayerId was missing."));
+        }
+
+        if (player == null) {
+            response.status(420);
+            return new Player("Player model is not valid");
+        }
+
         playerSet.add(player);
         response.status(201);
         player.setIsInJail(true);
@@ -39,18 +58,37 @@ public class JailService {
     }
 
     private Object getPlayer(Request request, Response response) throws Exception {
-        for (Player player : playerSet) {
-            if (player.getPlayerId().equals(request.params(":playerId"))) {
-                return gson.toJson(player);
-            }
+        String playerId = request.params(":playerId");
+        if (playerId == null || playerId.isEmpty()) {
+            response.status(420);
+            return new Player("Player Id is missing");
         }
-        response.status(404);
-        return gson.toJson(new Player("not found"));
+
+        Player player = playerSet
+                .stream()
+                .filter(p -> p.getPlayerId().equals(playerId))
+                .findAny()
+                .orElseGet(() -> {
+                    response.status(404);
+                    return new Player("Not found");
+                });
+
+        return gson.toJson(player);
     }
 
     private Object playerRollsDice(Request request, Response response) throws Exception {
         String playerId = request.params("playerId");
+        if (playerId == null || playerId.isEmpty()) {
+            response.status(420);
+            return new Player("Player Id is missing");
+        }
+
+        if(!request.queryMap().toMap().containsKey("pasch")) {
+            response.status(420);
+            return new Player("Pasch query param must be set");
+        }
         boolean pasch = Boolean.parseBoolean(request.queryParams("pasch"));
+
 
         Player player = null;
         for (Player p : playerSet) {

@@ -5,6 +5,7 @@ package io.github.flbaue.vs.RESTopoly;
  */
 public class Player {
 
+
     private String playerId;
     private int roundsInJail;
     private boolean isInJail;

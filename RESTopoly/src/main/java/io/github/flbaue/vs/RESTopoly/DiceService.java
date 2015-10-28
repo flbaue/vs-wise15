@@ -22,10 +22,16 @@ public class DiceService {
     private void run() {
         System.out.println("Dice Service is starting");
 
+        get("/", this::root);
         get("/dice", this::rollDice);
     }
 
+    private Object root(Request request, Response response) throws Exception {
+        return "It's Alive!";
+    }
+
     private Object rollDice(Request request, Response response) throws Exception {
+
         Roll roll = new Roll(new Random().nextInt(6) + 1);
         String json = gson.toJson(roll);
         return json;
