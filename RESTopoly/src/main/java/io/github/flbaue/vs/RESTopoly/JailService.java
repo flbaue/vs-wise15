@@ -42,13 +42,12 @@ public class JailService {
         try {
             player = gson.fromJson(request.body(), Player.class);
         } catch (JsonSyntaxException e) {
-            response.status(420);
-            return gson.toJson(new Player("Not created. PlayerId was missing."));
+            //nothing
         }
 
         if (player == null) {
             response.status(420);
-            return new Player("Player model is not valid");
+            return gson.toJson(new Player("Player model is not valid"));
         }
 
         playerSet.add(player);
