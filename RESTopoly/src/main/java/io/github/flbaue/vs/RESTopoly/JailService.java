@@ -60,7 +60,7 @@ public class JailService {
         String playerId = request.params(":playerId");
         if (playerId == null || playerId.isEmpty()) {
             response.status(420);
-            return new Player("Player Id is missing");
+            return gson.toJson(new Player("Player Id is missing"));
         }
 
         Player player = playerSet
@@ -77,14 +77,10 @@ public class JailService {
 
     private Object playerRollsDice(Request request, Response response) throws Exception {
         String playerId = request.params("playerId");
-        if (playerId == null || playerId.isEmpty()) {
-            response.status(420);
-            return new Player("Player Id is missing");
-        }
 
         if(!request.queryMap().toMap().containsKey("pasch")) {
             response.status(420);
-            return new Player("Pasch query param must be set");
+            return gson.toJson(new Player("Pasch query param must be set"));
         }
         boolean pasch = Boolean.parseBoolean(request.queryParams("pasch"));
 
