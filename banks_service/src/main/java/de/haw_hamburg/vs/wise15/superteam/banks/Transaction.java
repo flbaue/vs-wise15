@@ -10,9 +10,9 @@ public class Transaction {
     private String from;
     private String to;
     private String reason;
-    private MyEvent event;
+    private Event event;
 
-    public Transaction(String from, String to, String reason, MyEvent event) {
+    public Transaction(String from, String to, String reason, Event event) {
         this.from= from;
         this.to = to;
         this.reason = reason;

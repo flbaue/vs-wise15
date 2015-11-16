@@ -121,13 +121,9 @@ public class BankService {
         String to;
         BigDecimal amount;
         String reason;
-        Bank bank;
-        int bankId;
-        try {
-            reason = gson.fromJson(request.body(), String.class);
-        } catch (JsonSyntaxException e) {
-            return null;
-        }
+
+        reason = request.body();
+
         from = request.params(":from");
         to = request.params(":to");
         amount = new BigDecimal((request.params(":amount")));
@@ -170,25 +166,23 @@ public class BankService {
         Player player;
         Game game;
         String from;
-        String to;
+        String gameId;
         BigDecimal amount;
         String reason;
-        Bank bank;
-        int bankId;
         try {
             reason = gson.fromJson(request.body(), String.class);
         } catch (JsonSyntaxException e) {
             return null;
         }
         from = request.params(":from");
-        to = request.params(":to");
+        gameId = request.params(":gameId");
         amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(from, to, reason, new Event());
+        transaction = new Transaction(from, gameId, reason, new Event());
         for (Bank b : bankList) {
-            if (b.getBankId().equals(to)) {
+            if (b.getBankId().equals(gameId)) {
                 b.addTransaction(transaction);
                 game = b.getGame();
-                player = game.getPlayerById(to);
+                player = game.getPlayerById(from);
                 for(Account a: b.getAccountList()) {
                     if (a.getPlayer().equals(player)) {
                         a.setSaldo(a.getSaldo().subtract(amount));
@@ -207,7 +201,7 @@ public class BankService {
         Transaction transaction = null;
         Player player;
         Game game;
-        String from;
+        String gameId;
         String to;
         BigDecimal amount;
         String reason;
@@ -218,12 +212,12 @@ public class BankService {
         } catch (JsonSyntaxException e) {
             return null;
         }
-        from = request.params(":from");
+        gameId = request.params(":gameId");
         to = request.params(":to");
         amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(from, to, reason, new Event());
+        transaction = new Transaction(gameId, to, reason, new Event());
         for (Bank b : bankList) {
-            if (b.getBankId().equals(to)) {
+            if (b.getBankId().equals(gameId)) {
                 b.addTransaction(transaction);
                 game = b.getGame();
                 player = game.getPlayerById(to);
