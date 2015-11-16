@@ -9,16 +9,14 @@ import de.hawhamburg.vs.wise15.superteam.client.ui.StartForm;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
 
-import javax.net.ssl.*;
 import javax.swing.*;
-import java.security.cert.CertificateException;
 
 /**
  * Created by florian on 16.11.15.
  */
 public class Client {
 
-    private final OkHttpClient httpClient = getUnsafeOkHttpClient();
+    private final OkHttpClient httpClient = Utils.getUnsafeOkHttpClient();
     private final Retrofit retrofit;
     private JFrame frame;
 
@@ -36,60 +34,6 @@ public class Client {
     public static void main(String[] args) {
 
         new Client().run();
-    }
-
-
-    private static OkHttpClient getUnsafeOkHttpClient() {
-
-        try {
-            // Create a trust manager that does not validate certificate chains
-            final TrustManager[] trustAllCerts = new TrustManager[]{
-                    new X509TrustManager() {
-                        @Override
-                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-
-                        }
-
-
-                        @Override
-                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-
-                        }
-
-
-                        @Override
-                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-
-                            return null;
-                        }
-                    }
-            };
-
-            // Install the all-trusting trust manager
-            final SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-            // Create an ssl socket factory with our all-trusting manager
-            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-            OkHttpClient okHttpClient = new OkHttpClient();
-            okHttpClient.setSslSocketFactory(sslSocketFactory);
-            okHttpClient.setHostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-
-                    return true;
-                }
-            });
-
-            return okHttpClient;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    private void errorGameServiceNotReachable(String message) {
-        // TODO show error and allow user to retry
     }
 
 
