@@ -14,8 +14,6 @@ import java.awt.*;
  */
 public class Client {
 
-    private final OkHttpClient httpClient = Utils.getUnsafeOkHttpClient();
-    private final Retrofit retrofit;
     private final StartForm startForm;
     private final SearchForm searchForm;
     private final CreateForm createForm;
@@ -26,10 +24,11 @@ public class Client {
 
     public Client() {
 
-        retrofit = new Retrofit.Builder()
+        OkHttpClient httpClient = Utils.getUnsafeOkHttpClient();
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
                 .addConverterFactory(GsonConverterFactory.create())
-                .client(this.httpClient)
+                .client(httpClient)
                 .build();
 
         startForm = new StartForm(this);
@@ -79,6 +78,13 @@ public class Client {
 
         lobbyForm.setGame(game);
         changeContentPane(lobbyForm.getPanel());
+    }
+
+
+    public void openGameForm(Game game) {
+
+        gameForm.setGame(game);
+        changeContentPane(gameForm.getPanel());
     }
 
 
