@@ -16,7 +16,7 @@
           <text value="Verfügbare Spiele"/>
         </properties>
       </component>
-      <component id="96b88" class="javax.swing.JList" binding="list1" default-binding="true">
+      <component id="96b88" class="javax.swing.JList" binding="gameList">
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
@@ -32,7 +32,7 @@
           <selectionMode value="0"/>
         </properties>
       </component>
-      <component id="377ab" class="javax.swing.JList" binding="list2" default-binding="true">
+      <component id="377ab" class="javax.swing.JList" binding="playerList">
         <constraints>
           <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
