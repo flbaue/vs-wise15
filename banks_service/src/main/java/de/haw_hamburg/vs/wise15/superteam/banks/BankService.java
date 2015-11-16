@@ -37,7 +37,7 @@ public class BankService {
         get("/banks/:gameId/transfer/:transferId", this::getTransfer);
 
         //die Bank erstellen
-        put("/", this::createBank);
+        put("/banks", this::createBank);
 
         //ein Konto erstellen
         post("/banks/:gameid/players", this::createAccount);
@@ -59,12 +59,9 @@ public class BankService {
     private Object getTransfer(Request request, Response response) {
         Transaction transaction = null;
         String gameId = request.params(":gameId");
+        String transId = request.params(":transactionId");
         Bank bank = null;
         ArrayList<Transaction> transList;
-        try {
-            transaction = gson.fromJson(request.body(), Transaction.class);
-        } catch (JsonSyntaxException e) {
-        }
         for (Bank b : bankList) {
             if (gameId.equals(b.getBankId())) {
                 bank = b;
@@ -76,9 +73,9 @@ public class BankService {
         }
         transList = bank.getTransactionList();
         for (Transaction t : transList) {
-            if (transaction.getTransferId() == t.getTransferId()) {
+            if (transId.equals(t.getTransferId())) {
                 response.status(200);
-                return gson.toJson(transaction);
+                return gson.toJson(t);
             }
         }
         response.status(404);
@@ -107,6 +104,7 @@ public class BankService {
     }
 
     private Object root(Request request, Response response) throws Exception {
+
         return null;
     }
 
@@ -117,45 +115,44 @@ public class BankService {
         boolean bfrom = false;
         boolean bto = false;
         Game game;
+        String gameId;
         String from;
         String to;
         BigDecimal amount;
         String reason;
-
         reason = request.body();
-
+        gameId = request.params(":gameId");
         from = request.params(":from");
         to = request.params(":to");
         amount = new BigDecimal((request.params(":amount")));
         transaction = new Transaction(from, to, reason, new Event());
         for (Bank b : bankList) {
-            if (b.getBankId().equals(to)) {
+            if (b.getBankId().equals(gameId)) {
                 b.addTransaction(transaction);
                 game = b.getGame();
                 playerTo = game.getPlayerById(to);
-                for(Account a: b.getAccountList()) {
+                if (playerTo == null) {
+                    return null;
+                }
+                for (Account a : b.getAccountList()) {
                     if (a.getPlayer().equals(playerTo)) {
                         a.setSaldo(a.getSaldo().add(amount));
                     }
                 }
-                bto = true;
-
-            }
-            if (b.getBankId().equals(from)) {
                 b.addTransaction(transaction);
                 game = b.getGame();
                 playerFrom = game.getPlayerById(from);
-                for(Account a: b.getAccountList()) {
+                if (playerFrom == null) {
+                    return null;
+                }
+                for (Account a : b.getAccountList()) {
                     if (a.getPlayer().equals(playerFrom)) {
                         a.setSaldo(a.getSaldo().subtract(amount));
                     }
                 }
-                bfrom = true;
+                response.status(200);
+                return null;
             }
-        }
-        if (bfrom && bto) {
-            response.status(200);
-            return null;
         }
         response.status(403);
         return null;
@@ -183,7 +180,7 @@ public class BankService {
                 b.addTransaction(transaction);
                 game = b.getGame();
                 player = game.getPlayerById(from);
-                for(Account a: b.getAccountList()) {
+                for (Account a : b.getAccountList()) {
                     if (a.getPlayer().equals(player)) {
                         a.setSaldo(a.getSaldo().subtract(amount));
                     }
@@ -221,7 +218,7 @@ public class BankService {
                 b.addTransaction(transaction);
                 game = b.getGame();
                 player = game.getPlayerById(to);
-                for(Account a: b.getAccountList()) {
+                for (Account a : b.getAccountList()) {
                     if (a.getPlayer().equals(player)) {
                         a.setSaldo(a.getSaldo().add(amount));
                     }
