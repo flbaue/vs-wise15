@@ -103,9 +103,9 @@ public class BankService {
         return null;
     }
 
-    private Object root(Request request, Response response) throws Exception {
+    private String root(Request request, Response response) throws Exception {
 
-        return null;
+        return "Hallo Bianca";
     }
 
     private Object transferMoneyfromAccount(Request request, Response response) {
@@ -147,6 +147,10 @@ public class BankService {
                 }
                 for (Account a : b.getAccountList()) {
                     if (a.getPlayer().equals(playerFrom)) {
+                        if (a.getSaldo().compareTo(amount) < 0){
+                            response.status(403);
+                            return null;
+                        }
                         a.setSaldo(a.getSaldo().subtract(amount));
                     }
                 }
@@ -182,6 +186,10 @@ public class BankService {
                 player = game.getPlayerById(from);
                 for (Account a : b.getAccountList()) {
                     if (a.getPlayer().equals(player)) {
+                        if (a.getSaldo().compareTo(amount) < 0){
+                            response.status(403);
+                            return null;
+                        }
                         a.setSaldo(a.getSaldo().subtract(amount));
                     }
                 }
