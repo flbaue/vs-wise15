@@ -1,27 +1,21 @@
 package de.hawhamburg.vs.wise15.superteam.client.ui;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 import de.hawhamburg.vs.wise15.superteam.client.Client;
-import de.hawhamburg.vs.wise15.superteam.client.Constants;
-import de.hawhamburg.vs.wise15.superteam.client.ServiceDirectory;
+import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.model.GameCollection;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 import javax.swing.*;
-import java.util.ArrayList;
 
 /**
  * Created by florian on 16.11.15.
  */
 public class SearchForm {
-    private final Client client;
-    private final OkHttpClient httpClient;
-    private final Gson gson = new Gson();
+
+    private final GamesAPI gamesAPI;
 
     private JPanel panel;
     private JList<Game> gameList;
@@ -29,30 +23,30 @@ public class SearchForm {
     private JButton backButton;
     private JTextField textField1;
     private JButton enterGameButton;
-    private FetchGamesWorker fetchGamesWorker = new FetchGamesWorker();
-    private FetchGameDetailsWorker fetchGameDetailsWorker = new FetchGameDetailsWorker();
+    private FetchGamesWorker fetchGamesWorker;
+    private FetchGameDetailsWorker fetchGameDetailsWorker;
 
 
-    public SearchForm(Client client, OkHttpClient httpClient) {
+    public SearchForm(Client client, Retrofit retrofit) {
 
-        this.client = client;
-        this.httpClient = httpClient;
+        gamesAPI = retrofit.create(GamesAPI.class);
 
         fetchGames();
 
-
-        System.out.println("Test: " + gson.toJson(new ArrayList<String>()));
-
         ListSelectionModel selectionModel = gameList.getSelectionModel();
-        selectionModel.addListSelectionListener(e -> fetchGameDetailsWorker.execute());
+        selectionModel.addListSelectionListener(e -> {
+            fetchGameDetailsWorker = new FetchGameDetailsWorker();
+            fetchGameDetailsWorker.execute();
+        });
 
-        backButton.addActionListener(e -> this.client.openStartForm());
-        enterGameButton.addActionListener(e -> this.client.openLobbyForm(gameList.getSelectedValue()));
+        backButton.addActionListener(e -> client.openStartForm());
+        enterGameButton.addActionListener(e -> client.openLobbyForm(gameList.getSelectedValue()));
     }
 
 
     private void fetchGames() {
 
+        fetchGamesWorker = new FetchGamesWorker();
         fetchGamesWorker.execute();
     }
 
@@ -63,32 +57,36 @@ public class SearchForm {
     }
 
 
+    private void errorFetchingGames(Exception e) {
+        e.printStackTrace();
+        //TODO
+    }
+
+
+    private void errorFetchingGameDetails(Exception e) {
+        e.printStackTrace();
+        //TODO
+    }
+
+
     private class FetchGamesWorker extends SwingWorker<Void, Void> {
 
-        GameCollection games;
+        private GameCollection games;
+        private Exception e;
 
 
         @Override
-        protected Void doInBackground() throws Exception {
+        protected Void doInBackground() {
 
-            Request request = new Request.Builder()
-                    .url(Constants.SERVICE_DIRECTORY_URL + "/games")
-                    .get()
-                    .build();
+            try {
+                Response<GameCollection> gamesResponse = gamesAPI.all().execute();
 
-            Response response = httpClient.newCall(request).execute();
-
-            if (response.isSuccessful()) {
-                String body = response.body().string();
-                System.out.printf(body);
-                try {
-                    games = gson.fromJson(body, GameCollection.class);
-                } catch (JsonSyntaxException e) {
-                    System.out.println(e.getMessage());
+                if (gamesResponse.isSuccess()) {
+                    games = gamesResponse.body();
                 }
-
+            } catch (Exception e) {
+                this.e = e;
             }
-
             return null;
         }
 
@@ -99,6 +97,8 @@ public class SearchForm {
             DefaultListModel<Game> gameListModel = new DefaultListModel<>();
             if (games != null) {
                 games.getGames().forEach(gameListModel::addElement);
+            } else {
+                errorFetchingGames(e);
             }
             gameList.setModel(gameListModel);
         }
@@ -106,25 +106,23 @@ public class SearchForm {
 
     private class FetchGameDetailsWorker extends SwingWorker<Void, Void> {
 
-        Game game;
+        private Game game;
+        private Exception e;
 
 
         @Override
-        protected Void doInBackground() throws Exception {
+        protected Void doInBackground() {
 
-            Game selection = gameList.getSelectedValue();
+            try {
+                Game selection = gameList.getSelectedValue();
+                Response<Game> response = gamesAPI.byId(selection.getGameid()).execute();
 
-            Request request = new Request.Builder()
-                    .url(Constants.SERVICE_DIRECTORY_URL + "/games/" + selection.getGameid())
-                    .get()
-                    .build();
-
-            Response response = httpClient.newCall(request).execute();
-
-            if (response.isSuccessful()) {
-                game = gson.fromJson(response.body().charStream(), Game.class);
+                if (response.isSuccess()) {
+                    game = response.body();
+                }
+            } catch (Exception e) {
+                this.e = e;
             }
-
             return null;
         }
 
@@ -137,6 +135,8 @@ public class SearchForm {
                 for (Player player : game.getPlayers()) {
                     playerListModel.addElement(player.getName());
                 }
+            } else {
+                errorFetchingGameDetails(e);
             }
             playerList.setModel(playerListModel);
         }

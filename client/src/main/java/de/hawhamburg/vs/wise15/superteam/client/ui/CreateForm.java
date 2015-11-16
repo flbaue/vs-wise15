@@ -1,14 +1,10 @@
 package de.hawhamburg.vs.wise15.superteam.client.ui;
 
-import com.google.gson.Gson;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
 import de.hawhamburg.vs.wise15.superteam.client.Client;
-import de.hawhamburg.vs.wise15.superteam.client.Constants;
-import de.hawhamburg.vs.wise15.superteam.client.ServiceDirectory;
+import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 import javax.swing.*;
 
@@ -17,26 +13,31 @@ import javax.swing.*;
  */
 public class CreateForm {
     private final Client client;
-    private final Gson gson = new Gson();
-    private final CreateGameWorker createGameWorker = new CreateGameWorker();
+    private final GamesAPI gamesAPI;
+    private CreateGameWorker createGameWorker;
     private JPanel panel;
     private JTextField textField1;
     private JButton createGameButton;
     private JButton backButton;
-    private OkHttpClient httpClient = new OkHttpClient();
 
 
-    public CreateForm(Client client) {
+    public CreateForm(Client client, Retrofit retrofit) {
+
+        gamesAPI = retrofit.create(GamesAPI.class);
 
         this.client = client;
 
         backButton.addActionListener(e -> client.openStartForm());
-        createGameButton.addActionListener(e -> createGameWorker.execute());
+        createGameButton.addActionListener(e -> {
+            createGameWorker = new CreateGameWorker();
+            createGameWorker.execute();
+        });
     }
 
 
-    private void gameNotCreated() {
+    private void gameNotCreated(Exception e) {
         // TODO Show Error
+        e.printStackTrace();
     }
 
 
@@ -49,22 +50,20 @@ public class CreateForm {
     private class CreateGameWorker extends SwingWorker<Void, Void> {
 
         private Game game;
+        private Exception e;
 
 
         @Override
-        protected Void doInBackground() throws Exception {
+        protected Void doInBackground() {
 
-            RequestBody requestBody = RequestBody.create(Constants.JSON, "");
-            Request request = new Request.Builder()
-                    .url(Constants.SERVICE_DIRECTORY_URL + "/games")
-                    .post(requestBody)
-                    .build();
-            Response response = httpClient.newCall(request).execute();
-
-            if (response.isSuccessful()) {
-                game = gson.fromJson(response.body().charStream(), Game.class);
+            try {
+                Response<Game> response = gamesAPI.createGame().execute();
+                if (response.isSuccess()) {
+                    game = response.body();
+                }
+            } catch (Exception e) {
+                this.e = e;
             }
-
             return null;
         }
 
@@ -76,7 +75,7 @@ public class CreateForm {
                 //TODO add user to game
                 client.openLobbyForm(game);
             } else {
-                gameNotCreated();
+                gameNotCreated(e);
             }
         }
     }

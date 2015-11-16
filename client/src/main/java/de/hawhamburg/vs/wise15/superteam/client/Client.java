@@ -1,15 +1,17 @@
 package de.hawhamburg.vs.wise15.superteam.client;
 
+import com.google.gson.Gson;
 import com.squareup.okhttp.OkHttpClient;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.ui.CreateForm;
 import de.hawhamburg.vs.wise15.superteam.client.ui.LobbyForm;
 import de.hawhamburg.vs.wise15.superteam.client.ui.SearchForm;
 import de.hawhamburg.vs.wise15.superteam.client.ui.StartForm;
+import retrofit.GsonConverterFactory;
+import retrofit.Retrofit;
 
 import javax.net.ssl.*;
 import javax.swing.*;
-import java.io.IOException;
 import java.security.cert.CertificateException;
 
 /**
@@ -17,18 +19,19 @@ import java.security.cert.CertificateException;
  */
 public class Client {
 
+    private final OkHttpClient httpClient = getUnsafeOkHttpClient();
+    private final Gson gson = new Gson();
+    private final Retrofit retrofit;
     private JFrame frame;
-    private ServiceDirectory serviceDirectory;
-    private OkHttpClient httpClient = getUnsafeOkHttpClient();
 
 
     public Client() {
 
-        try {
-            serviceDirectory = new ServiceDirectory(httpClient);
-        } catch (IOException e) {
-            errorGameServiceNotReachable(e.getMessage());
-        }
+        retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
+                .addConverterFactory(GsonConverterFactory.create(this.gson))
+                .client(this.httpClient)
+                .build();
     }
 
 
@@ -105,7 +108,7 @@ public class Client {
     public void openSearchForm() {
 
         frame.getContentPane().removeAll();
-        frame.getContentPane().add(new SearchForm(this, httpClient).getPanel());
+        frame.getContentPane().add(new SearchForm(this, retrofit).getPanel());
         frame.getContentPane().revalidate();
         frame.getContentPane().repaint();
     }
@@ -114,7 +117,7 @@ public class Client {
     public void openCreateForm() {
 
         frame.getContentPane().removeAll();
-        frame.getContentPane().add(new CreateForm(this).getPanel());
+        frame.getContentPane().add(new CreateForm(this, retrofit).getPanel());
         frame.getContentPane().revalidate();
         frame.getContentPane().repaint();
     }
