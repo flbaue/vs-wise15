@@ -105,7 +105,7 @@ public class Client {
     public void openSearchForm() {
 
         frame.getContentPane().removeAll();
-        frame.getContentPane().add(new SearchForm(this, serviceDirectory, httpClient).getPanel());
+        frame.getContentPane().add(new SearchForm(this, httpClient).getPanel());
         frame.getContentPane().revalidate();
         frame.getContentPane().repaint();
     }
@@ -114,7 +114,7 @@ public class Client {
     public void openCreateForm() {
 
         frame.getContentPane().removeAll();
-        frame.getContentPane().add(new CreateForm(this, serviceDirectory).getPanel());
+        frame.getContentPane().add(new CreateForm(this).getPanel());
         frame.getContentPane().revalidate();
         frame.getContentPane().repaint();
     }

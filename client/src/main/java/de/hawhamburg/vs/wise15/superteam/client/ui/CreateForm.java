@@ -17,9 +17,8 @@ import javax.swing.*;
  */
 public class CreateForm {
     private final Client client;
-    private final ServiceDirectory serviceDirectory;
     private final Gson gson = new Gson();
-    private SwingWorker<Void, Void> createGameWorker;
+    private final CreateGameWorker createGameWorker = new CreateGameWorker();
     private JPanel panel;
     private JTextField textField1;
     private JButton createGameButton;
@@ -27,53 +26,12 @@ public class CreateForm {
     private OkHttpClient httpClient = new OkHttpClient();
 
 
-    public CreateForm(Client client, ServiceDirectory serviceDirectory) {
+    public CreateForm(Client client) {
 
         this.client = client;
-        this.serviceDirectory = serviceDirectory;
 
         backButton.addActionListener(e -> client.openStartForm());
-
-        createGameButton.addActionListener(e -> {
-            createGameWorker = new SwingWorker<Void, Void>() {
-
-                private Game game;
-
-
-                @Override
-                protected Void doInBackground() throws Exception {
-
-                    game = new Game("test1",null,null);
-
-                    String content = gson.toJson(game);
-                    RequestBody requestBody = RequestBody.create(Constants.JSON, content);
-                    Request request = new Request.Builder()
-                            .url(Constants.SERVICE_DIRECTORY_URL + "/games")
-                            .post(requestBody)
-                            .build();
-                    Response response = httpClient.newCall(request).execute();
-
-                    if (response.isSuccessful()) {
-                        game = gson.fromJson(response.body().charStream(), Game.class);
-                    }
-
-                    return null;
-                }
-
-
-                @Override
-                protected void done() {
-
-                    if (game != null) {
-                        //client.openLobbyForm(game);
-                    } else {
-                        gameNotCreated();
-                    }
-                }
-            };
-            createGameWorker.execute();
-        });
-
+        createGameButton.addActionListener(e -> createGameWorker.execute());
     }
 
 
@@ -85,5 +43,41 @@ public class CreateForm {
     public JPanel getPanel() {
 
         return panel;
+    }
+
+
+    private class CreateGameWorker extends SwingWorker<Void, Void> {
+
+        private Game game;
+
+
+        @Override
+        protected Void doInBackground() throws Exception {
+
+            RequestBody requestBody = RequestBody.create(Constants.JSON, "");
+            Request request = new Request.Builder()
+                    .url(Constants.SERVICE_DIRECTORY_URL + "/games")
+                    .post(requestBody)
+                    .build();
+            Response response = httpClient.newCall(request).execute();
+
+            if (response.isSuccessful()) {
+                game = gson.fromJson(response.body().charStream(), Game.class);
+            }
+
+            return null;
+        }
+
+
+        @Override
+        protected void done() {
+
+            if (game != null) {
+                //TODO add user to game
+                client.openLobbyForm(game);
+            } else {
+                gameNotCreated();
+            }
+        }
     }
 }

@@ -13,13 +13,13 @@ import de.hawhamburg.vs.wise15.superteam.client.model.GameCollection;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 
 import javax.swing.*;
+import java.util.ArrayList;
 
 /**
  * Created by florian on 16.11.15.
  */
 public class SearchForm {
     private final Client client;
-    private final ServiceDirectory serviceDirectory;
     private final OkHttpClient httpClient;
     private final Gson gson = new Gson();
 
@@ -29,107 +29,30 @@ public class SearchForm {
     private JButton backButton;
     private JTextField textField1;
     private JButton enterGameButton;
-    private SwingWorker<Void, Void> fetchGamesWorker;
-    private SwingWorker<Void, Void> fetchGameDetailsWorker;
+    private FetchGamesWorker fetchGamesWorker = new FetchGamesWorker();
+    private FetchGameDetailsWorker fetchGameDetailsWorker = new FetchGameDetailsWorker();
 
 
-    public SearchForm(Client client, ServiceDirectory serviceDirectory, OkHttpClient httpClient) {
+    public SearchForm(Client client, OkHttpClient httpClient) {
 
         this.client = client;
-        this.serviceDirectory = serviceDirectory;
         this.httpClient = httpClient;
 
         fetchGames();
 
+
+        System.out.println("Test: " + gson.toJson(new ArrayList<String>()));
+
         ListSelectionModel selectionModel = gameList.getSelectionModel();
-        selectionModel.addListSelectionListener(e -> {
-            fetchGameDetailsWorker = new SwingWorker<Void, Void>() {
-                Game game;
+        selectionModel.addListSelectionListener(e -> fetchGameDetailsWorker.execute());
 
-
-                @Override
-                protected Void doInBackground() throws Exception {
-
-                    Game selection = gameList.getSelectedValue();
-
-                    Request request = new Request.Builder()
-                            .url(Constants.SERVICE_DIRECTORY_URL + "/games/" + selection.getGameid())
-                            .get()
-                            .build();
-
-                    Response response = httpClient.newCall(request).execute();
-
-                    if (response.isSuccessful()) {
-                        game = gson.fromJson(response.body().charStream(), Game.class);
-                    }
-
-                    return null;
-                }
-
-
-                @Override
-                protected void done() {
-
-                    DefaultListModel<String> playerListModel = new DefaultListModel<>();
-                    if (game != null) {
-                        for (Player player : game.getPlayers()) {
-                            playerListModel.addElement(player.getName());
-                        }
-                    }
-                    playerList.setModel(playerListModel);
-                }
-            };
-            fetchGameDetailsWorker.execute();
-        });
-
-        backButton.addActionListener(e -> client.openStartForm());
-        enterGameButton.addActionListener(e -> client.openLobbyForm(gameList.getSelectedValue()));
+        backButton.addActionListener(e -> this.client.openStartForm());
+        enterGameButton.addActionListener(e -> this.client.openLobbyForm(gameList.getSelectedValue()));
     }
 
 
     private void fetchGames() {
 
-        fetchGamesWorker = new SwingWorker<Void, Void>() {
-
-            GameCollection games;
-
-
-            @Override
-            protected Void doInBackground() throws Exception {
-
-                Request request = new Request.Builder()
-                        .url(Constants.SERVICE_DIRECTORY_URL + "/games")
-                        .get()
-                        .build();
-
-                Response response = httpClient.newCall(request).execute();
-
-                if (response.isSuccessful()) {
-                    String body = response.body().string();
-                    System.out.printf(body);
-                    try {
-
-                        games = gson.fromJson(body, GameCollection.class);
-                    } catch (JsonSyntaxException e) {
-                        System.out.println(e.getMessage());
-                    }
-
-                }
-
-                return null;
-            }
-
-
-            @Override
-            protected void done() {
-
-                DefaultListModel<Game> gameListModel = new DefaultListModel<>();
-                if (games != null) {
-                    games.getGames().forEach(gameListModel::addElement);
-                }
-                gameList.setModel(gameListModel);
-            }
-        };
         fetchGamesWorker.execute();
     }
 
@@ -137,5 +60,85 @@ public class SearchForm {
     public JPanel getPanel() {
 
         return panel;
+    }
+
+
+    private class FetchGamesWorker extends SwingWorker<Void, Void> {
+
+        GameCollection games;
+
+
+        @Override
+        protected Void doInBackground() throws Exception {
+
+            Request request = new Request.Builder()
+                    .url(Constants.SERVICE_DIRECTORY_URL + "/games")
+                    .get()
+                    .build();
+
+            Response response = httpClient.newCall(request).execute();
+
+            if (response.isSuccessful()) {
+                String body = response.body().string();
+                System.out.printf(body);
+                try {
+                    games = gson.fromJson(body, GameCollection.class);
+                } catch (JsonSyntaxException e) {
+                    System.out.println(e.getMessage());
+                }
+
+            }
+
+            return null;
+        }
+
+
+        @Override
+        protected void done() {
+
+            DefaultListModel<Game> gameListModel = new DefaultListModel<>();
+            if (games != null) {
+                games.getGames().forEach(gameListModel::addElement);
+            }
+            gameList.setModel(gameListModel);
+        }
+    }
+
+    private class FetchGameDetailsWorker extends SwingWorker<Void, Void> {
+
+        Game game;
+
+
+        @Override
+        protected Void doInBackground() throws Exception {
+
+            Game selection = gameList.getSelectedValue();
+
+            Request request = new Request.Builder()
+                    .url(Constants.SERVICE_DIRECTORY_URL + "/games/" + selection.getGameid())
+                    .get()
+                    .build();
+
+            Response response = httpClient.newCall(request).execute();
+
+            if (response.isSuccessful()) {
+                game = gson.fromJson(response.body().charStream(), Game.class);
+            }
+
+            return null;
+        }
+
+
+        @Override
+        protected void done() {
+
+            DefaultListModel<String> playerListModel = new DefaultListModel<>();
+            if (game != null) {
+                for (Player player : game.getPlayers()) {
+                    playerListModel.addElement(player.getName());
+                }
+            }
+            playerList.setModel(playerListModel);
+        }
     }
 }
