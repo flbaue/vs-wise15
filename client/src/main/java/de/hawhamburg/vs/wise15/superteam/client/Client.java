@@ -1,6 +1,5 @@
 package de.hawhamburg.vs.wise15.superteam.client;
 
-import com.google.gson.Gson;
 import com.squareup.okhttp.OkHttpClient;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.ui.CreateForm;
@@ -20,7 +19,6 @@ import java.security.cert.CertificateException;
 public class Client {
 
     private final OkHttpClient httpClient = getUnsafeOkHttpClient();
-    private final Gson gson = new Gson();
     private final Retrofit retrofit;
     private JFrame frame;
 
@@ -29,7 +27,7 @@ public class Client {
 
         retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
-                .addConverterFactory(GsonConverterFactory.create(this.gson))
+                .addConverterFactory(GsonConverterFactory.create())
                 .client(this.httpClient)
                 .build();
     }
@@ -135,7 +133,7 @@ public class Client {
     public void openLobbyForm(Game game) {
 
         frame.getContentPane().removeAll();
-        frame.getContentPane().add(new LobbyForm(this).getPanel());
+        frame.getContentPane().add(new LobbyForm(this, game).getPanel());
         frame.getContentPane().revalidate();
         frame.getContentPane().repaint();
     }

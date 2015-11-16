@@ -8,7 +8,7 @@ import java.util.List;
 public class Game {
 
     private String gameid;
-    private List<Player> players;
+    private PlayerCollection players;
     private boolean started;
     private String uri;
     private Components components;
@@ -19,7 +19,7 @@ public class Game {
     }
 
 
-    public Game(String gameid, List<Player> players, boolean started, String uri, Components components) {
+    public Game(String gameid, PlayerCollection players, boolean started, String uri, Components components) {
 
         this.gameid = gameid;
         this.players = players;
@@ -35,7 +35,7 @@ public class Game {
     }
 
 
-    public List<Player> getPlayers() {
+    public PlayerCollection getPlayers() {
 
         return players;
     }

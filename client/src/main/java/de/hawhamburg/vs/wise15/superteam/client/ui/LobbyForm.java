@@ -1,6 +1,7 @@
 package de.hawhamburg.vs.wise15.superteam.client.ui;
 
 import de.hawhamburg.vs.wise15.superteam.client.Client;
+import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 
 import javax.swing.*;
 
@@ -14,7 +15,7 @@ public class LobbyForm {
     private JButton exitButton;
 
 
-    public LobbyForm(Client client) {
+    public LobbyForm(Client client, Game game) {
 
 
         exitButton.addActionListener(e -> client.openStartForm());
