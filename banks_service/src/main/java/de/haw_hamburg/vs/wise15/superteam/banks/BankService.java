@@ -131,7 +131,7 @@ public class BankService {
         from = request.params(":from");
         to = request.params(":to");
         amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(from, to, reason, new MyEvent());
+        transaction = new Transaction(from, to, reason, new Event());
         for (Bank b : bankList) {
             if (b.getBankId().equals(to)) {
                 b.addTransaction(transaction);
@@ -183,7 +183,7 @@ public class BankService {
         from = request.params(":from");
         to = request.params(":to");
         amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(from, to, reason, new MyEvent());
+        transaction = new Transaction(from, to, reason, new Event());
         for (Bank b : bankList) {
             if (b.getBankId().equals(to)) {
                 b.addTransaction(transaction);
@@ -221,7 +221,7 @@ public class BankService {
         from = request.params(":from");
         to = request.params(":to");
         amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(from, to, reason, new MyEvent());
+        transaction = new Transaction(from, to, reason, new Event());
         for (Bank b : bankList) {
             if (b.getBankId().equals(to)) {
                 b.addTransaction(transaction);
