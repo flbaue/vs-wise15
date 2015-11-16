@@ -13,6 +13,7 @@ public class LobbyForm {
     private JList list1;
     private JButton readyButton;
     private JButton exitButton;
+    private Game game;
 
 
     public LobbyForm(Client client, Game game) {
@@ -22,8 +23,20 @@ public class LobbyForm {
     }
 
 
+    public LobbyForm(Client client) {
+
+
+    }
+
+
     public JPanel getPanel() {
 
         return panel;
+    }
+
+
+    public void setGame(Game game) {
+
+        this.game = game;
     }
 }

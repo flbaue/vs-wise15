@@ -37,7 +37,7 @@ public class SearchForm {
         gamesAPI = retrofit.create(GamesAPI.class);
         playersAPI = retrofit.create(PlayersAPI.class);
 
-        fetchGames();
+        refresh();
 
         ListSelectionModel selectionModel = gameList.getSelectionModel();
         selectionModel.addListSelectionListener(e -> {
@@ -131,6 +131,12 @@ public class SearchForm {
 
         e.printStackTrace();
         //TODO
+    }
+
+
+    public void refresh() {
+
+        fetchGames();
     }
 
 

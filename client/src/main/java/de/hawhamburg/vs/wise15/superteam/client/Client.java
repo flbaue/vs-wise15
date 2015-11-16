@@ -2,14 +2,12 @@ package de.hawhamburg.vs.wise15.superteam.client;
 
 import com.squareup.okhttp.OkHttpClient;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
-import de.hawhamburg.vs.wise15.superteam.client.ui.CreateForm;
-import de.hawhamburg.vs.wise15.superteam.client.ui.LobbyForm;
-import de.hawhamburg.vs.wise15.superteam.client.ui.SearchForm;
-import de.hawhamburg.vs.wise15.superteam.client.ui.StartForm;
+import de.hawhamburg.vs.wise15.superteam.client.ui.*;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * Created by florian on 16.11.15.
@@ -18,6 +16,11 @@ public class Client {
 
     private final OkHttpClient httpClient = Utils.getUnsafeOkHttpClient();
     private final Retrofit retrofit;
+    private final StartForm startForm;
+    private final SearchForm searchForm;
+    private final CreateForm createForm;
+    private final LobbyForm lobbyForm;
+    private final GameForm gameForm;
     private JFrame frame;
 
 
@@ -28,6 +31,12 @@ public class Client {
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(this.httpClient)
                 .build();
+
+        startForm = new StartForm(this);
+        searchForm = new SearchForm(this, retrofit);
+        createForm = new CreateForm(this, retrofit);
+        lobbyForm = new LobbyForm(this);
+        gameForm = new GameForm();
     }
 
 
@@ -49,35 +58,34 @@ public class Client {
 
     public void openSearchForm() {
 
-        frame.getContentPane().removeAll();
-        frame.getContentPane().add(new SearchForm(this, retrofit).getPanel());
-        frame.getContentPane().revalidate();
-        frame.getContentPane().repaint();
+        searchForm.refresh();
+        changeContentPane(searchForm.getPanel());
     }
 
 
     public void openCreateForm() {
 
-        frame.getContentPane().removeAll();
-        frame.getContentPane().add(new CreateForm(this, retrofit).getPanel());
-        frame.getContentPane().revalidate();
-        frame.getContentPane().repaint();
+        changeContentPane(createForm.getPanel());
     }
 
 
     public void openStartForm() {
 
-        frame.getContentPane().removeAll();
-        frame.getContentPane().add(new StartForm(this).getPanel());
-        frame.getContentPane().revalidate();
-        frame.getContentPane().repaint();
+        changeContentPane(startForm.getPanel());
     }
 
 
     public void openLobbyForm(Game game) {
 
+        lobbyForm.setGame(game);
+        changeContentPane(lobbyForm.getPanel());
+    }
+
+
+    private void changeContentPane(Container container) {
+
         frame.getContentPane().removeAll();
-        frame.getContentPane().add(new LobbyForm(this, game).getPanel());
+        frame.getContentPane().add(container);
         frame.getContentPane().revalidate();
         frame.getContentPane().repaint();
     }
