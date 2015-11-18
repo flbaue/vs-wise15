@@ -48,7 +48,7 @@ public class Client {
     private void run() {
 
         frame = new JFrame("RESTopoly");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setSize(500, 500);
         frame.getContentPane().add(new StartForm(this).getPanel());
         frame.setVisible(true);

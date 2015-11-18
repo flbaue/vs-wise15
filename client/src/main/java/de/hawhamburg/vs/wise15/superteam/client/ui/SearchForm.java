@@ -55,6 +55,18 @@ public class SearchForm {
     }
 
 
+    public void refresh() {
+
+        fetchGames();
+    }
+
+
+    public JPanel getPanel() {
+
+        return panel;
+    }
+
+
     private boolean joinPlayer(Game game) {
 
 
@@ -100,12 +112,6 @@ public class SearchForm {
     }
 
 
-    public JPanel getPanel() {
-
-        return panel;
-    }
-
-
     private void errorGameNotJoined(IOException e) {
 
         e.printStackTrace();
@@ -131,12 +137,6 @@ public class SearchForm {
 
         e.printStackTrace();
         //TODO
-    }
-
-
-    public void refresh() {
-
-        fetchGames();
     }
 
 
@@ -174,6 +174,7 @@ public class SearchForm {
             gameList.setModel(gameListModel);
         }
     }
+
 
     private class FetchPlayersWorker extends SwingWorker<Void, Void> {
 
