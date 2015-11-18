@@ -12,7 +12,6 @@ import retrofit.http.*;
  */
 public interface GamesAPI {
 
-
     /**
      * Creates a {@link Game}.
      *
@@ -144,5 +143,4 @@ public interface GamesAPI {
      */
     @DELETE("games/{gameid}/players/turn")
     Call<String> removeTurnPlayer(@Path("gameId") String gameId);
-
 }
