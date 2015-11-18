@@ -23,6 +23,7 @@ public class BankService {
 
     private Gson gson = new Gson();
     private ArrayList<Bank> bankList;
+    private int transferId = 0;
 
     public static void main(String[] args) {
         new BankService().run();
@@ -34,10 +35,13 @@ public class BankService {
         //den Status von der Bank ausgeben
         get("/", this::root);
 
+        //den Status von der Bank ausgeben
+        put("/banks", this::createBank);
+
         get("/banks/:gameId/transfer/:transferId", this::getTransfer);
 
         //die Bank erstellen
-        put("/banks", this::createBank);
+        post("/banks", this::createBank);
 
         //ein Konto erstellen
         post("/banks/:gameid/players", this::createAccount);
@@ -54,9 +58,35 @@ public class BankService {
 
         //Geld von einem zu anderen Konto übertragen
         post("/banks/:gameid/transfer/from/:from/to/:to/:amount", this::transferMoneyfromAccount);
+
+        //transaktion bestenaetigen
+        post("/banks/:gameid/transfer/:amount/:transferId", this::transBesaetigen);
+
+
+    }
+
+    private Object transBesaetigen(Request request, Response response) {
+        String transId = request.params(":transferId");
+        String gameId = request.params(":gameId");
+        BigDecimal amount = new BigDecimal(request.params(":amount"));
+        Bank bank = null;
+        for (Bank b : bankList) {
+            if (gameId.equals(b.getBankId())) {
+                bank = b;
+            }
+        }
+        for (Transaction trans : bank.getTransListNichtBestaetigt()) {
+            if (trans.getTransferId().equals(transId)) {
+                transaktionDurchfuehren(trans, bank, response, amount);
+            }
+        }
+
+        return "transBestatigt";
     }
 
     private Object getTransfer(Request request, Response response) {
+        System.out.println("put banks");
+
         Transaction transaction = null;
         String gameId = request.params(":gameId");
         String transId = request.params(":transactionId");
@@ -69,7 +99,7 @@ public class BankService {
         }
         if (bank == null) {                  //TODO:falscher param bank id
             response.status(404);
-            return null;
+            return "status bank nicht gefunden";
         }
         transList = bank.getTransactionList();
         for (Transaction t : transList) {
@@ -83,24 +113,28 @@ public class BankService {
     }
 
     private Object createBank(Request request, Response response) throws Exception {
+
+        System.out.println("put banks");
+
         Game game = null;
         Bank bank;
-        int bankId;
         try {
             game = gson.fromJson(request.body(), Game.class);
         } catch (JsonSyntaxException e) {
 
         }
 
+        System.out.println("put banks 2");
+
         if (game == null) {
             response.status(403);
-            return null;
+            return "test";
         }
 
         bank = new Bank(game);
         bankList.add(bank);
         response.status(201);
-        return null;
+        return "";
     }
 
     private String root(Request request, Response response) throws Exception {
@@ -112,55 +146,41 @@ public class BankService {
         Transaction transaction = null;
         Player playerTo;
         Player playerFrom;
-        boolean bfrom = false;
-        boolean bto = false;
         Game game;
         String gameId;
         String from;
         String to;
-        BigDecimal amount;
         String reason;
         reason = request.body();
         gameId = request.params(":gameId");
         from = request.params(":from");
         to = request.params(":to");
-        amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(from, to, reason, new Event());
+        transaction = new Transaction(Integer.toString(transferId), from, to, reason, new Event());
+        transferId++;
         for (Bank b : bankList) {
             if (b.getBankId().equals(gameId)) {
-                b.addTransaction(transaction);
                 game = b.getGame();
                 playerTo = game.getPlayerById(to);
                 if (playerTo == null) {
-                    return null;
+
+                    return "playerTo nicht gefunden";
                 }
-                for (Account a : b.getAccountList()) {
-                    if (a.getPlayer().equals(playerTo)) {
-                        a.setSaldo(a.getSaldo().add(amount));
-                    }
-                }
-                b.addTransaction(transaction);
-                game = b.getGame();
+
                 playerFrom = game.getPlayerById(from);
                 if (playerFrom == null) {
-                    return null;
+                    return "playerTo nicht gefunden";
                 }
-                for (Account a : b.getAccountList()) {
-                    if (a.getPlayer().equals(playerFrom)) {
-                        if (a.getSaldo().compareTo(amount) < 0){
-                            response.status(403);
-                            return null;
-                        }
-                        a.setSaldo(a.getSaldo().subtract(amount));
-                    }
-                }
-                response.status(200);
-                return null;
+                b.addTransNichtBestaetigt(transaction);
+
             }
+            response.status(200);
+            response.body(Integer.toString(transferId));
+            response.header("Bitte aufrufen:","/banks/:gameid/transfer/:amount/:transferId");
+            return "";
         }
-        response.status(403);
-        return null;
+        return "";
     }
+
 
     private Object transferMoneytoBank(Request request, Response response) {
         Transaction transaction = null;
@@ -173,34 +193,24 @@ public class BankService {
         try {
             reason = gson.fromJson(request.body(), String.class);
         } catch (JsonSyntaxException e) {
-            return null;
+            return "json exception";
         }
         from = request.params(":from");
         gameId = request.params(":gameId");
         amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(from, gameId, reason, new Event());
+        transaction = new Transaction(Integer.toString(transferId), from, "bank", reason, new Event());
+        transferId++;
         for (Bank b : bankList) {
             if (b.getBankId().equals(gameId)) {
-                b.addTransaction(transaction);
-                game = b.getGame();
-                player = game.getPlayerById(from);
-                for (Account a : b.getAccountList()) {
-                    if (a.getPlayer().equals(player)) {
-                        if (a.getSaldo().compareTo(amount) < 0){
-                            response.status(403);
-                            return null;
-                        }
-                        a.setSaldo(a.getSaldo().subtract(amount));
-                    }
-                }
+                b.addTransNichtBestaetigt(transaction);
                 response.status(201);
-                return null;
+                response.body(transaction.getTransferId());
+                response.header("Bitte aufrufen:","/banks/:gameid/transfer/:amount/:transferId");
+                return "";
             }
         }
-        response.status(403);
-        return null;
+        return "";
     }
-
 
     private Object transferMoneyfromBank(Request request, Response response) {
         Transaction transaction = null;
@@ -215,34 +225,31 @@ public class BankService {
         try {
             reason = gson.fromJson(request.body(), String.class);
         } catch (JsonSyntaxException e) {
-            return null;
+            return "json exception";
         }
         gameId = request.params(":gameId");
         to = request.params(":to");
         amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(gameId, to, reason, new Event());
+        transaction = new Transaction(Integer.toString(transferId), "bank", to, reason, new Event());
+        transferId++;
         for (Bank b : bankList) {
             if (b.getBankId().equals(gameId)) {
-                b.addTransaction(transaction);
-                game = b.getGame();
-                player = game.getPlayerById(to);
-                for (Account a : b.getAccountList()) {
-                    if (a.getPlayer().equals(player)) {
-                        a.setSaldo(a.getSaldo().add(amount));
-                    }
-                }
+                b.addTransNichtBestaetigt(transaction);
                 response.status(201);
-                return null;
+                response.body(transaction.getTransferId());
+                return "";
             }
         }
         response.status(403);
-        return null;
+        response.header("Bitte aufrufen:","/banks/:gameid/transfer/:amount/:transferId");
+        return "";
     }
 
     private BigDecimal getAccountBalance(Request request, Response response) {
         String playerId;
         String gameId;
         BigDecimal saldo;
+        BigDecimal r = new BigDecimal(0);
         Player player = null;
         playerId = request.params(":playerId");
         gameId = request.params(":gameId");
@@ -260,6 +267,37 @@ public class BankService {
         }
 
         response.status(404);
+        return r;
+    }
+
+    private Object transaktionDurchfuehren(Transaction trans, Bank b, Response response, BigDecimal amount) {
+        if (trans.getFrom().equals("bank")) {
+            bezahlen(trans, b, trans.getTo(), response, amount);
+        } else if (trans.getTo().equals("bank")) {
+            bezahlen(trans, b, trans.getFrom(), response, amount.negate());
+        } else if (!(trans.getTo().equals("bank")) && !(trans.getFrom().equals("bank"))) {
+            bezahlen(trans, b, trans.getTo(), response, amount);
+            bezahlen(trans, b, trans.getFrom(), response, amount.negate());
+        } else {
+            b.getTransListNichtBestaetigt().remove(trans);
+            response.status(403);
+            return "";
+        }
+        response.status(200);
+        return "";
+    }
+
+    private Object bezahlen(Transaction trans, Bank b, String playerId, Response response, BigDecimal amount) {
+        for (Account a : b.getAccountList()) {
+            if (a.getPlayer().getPlayerId().equals(playerId)) {
+                if (a.getSaldo().compareTo(amount.abs()) < 0) {
+                    response.status(403);
+                    b.getTransListNichtBestaetigt().remove(trans);
+                    return "nicht genug saldo";
+                }
+                a.setSaldo(a.getSaldo().add(amount));
+            }
+        }
         return null;
     }
 
@@ -272,7 +310,7 @@ public class BankService {
         try {
             account = gson.fromJson(request.body(), Account.class);
         } catch (JsonSyntaxException e) {
-            return null;
+            return "json exception";
         }
         player = account.getPlayer();
         for (Bank b : bankList) {
@@ -281,13 +319,13 @@ public class BankService {
                 for (Account a : b.getAccountList())
                     if (a.getPlayer().equals(player)) {
                         response.status(409);
-                        return null;
+                        return "";
                     }
             }
         }
         bank.addAccount(account);
         response.status(201);
-        return null;
+        return "";
     }
 
 }
