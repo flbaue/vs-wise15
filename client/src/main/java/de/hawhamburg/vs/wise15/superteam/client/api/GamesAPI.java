@@ -13,15 +13,6 @@ import retrofit.http.*;
 public interface GamesAPI {
 
     /**
-     * Creates a {@link Game}.
-     *
-     * @return {@link Game}
-     */
-    @POST("games")
-    Call<Game> createGame();
-
-
-    /**
      * Gets all {@link Game} objects.
      *
      * @return {@link GameCollection}
@@ -31,9 +22,19 @@ public interface GamesAPI {
 
 
     /**
+     * Creates a {@link Game}.
+     *
+     * @param game {@link Game}
+     * @return {@link Game}
+     */
+    @POST("games")
+    Call<Game> createGame(@Body Game game);
+
+
+    /**
      * Gets the {@link Game}.
      *
-     * @param gameId
+     * @param gameId of the game.
      * @return {@link Game}
      */
     @GET("games/{gameId}")
@@ -43,7 +44,7 @@ public interface GamesAPI {
     /**
      * Gets all {@link Player} that take part in the {@link Game}.
      *
-     * @param gameId
+     * @param gameId of the game.
      * @return {@link PlayerCollection}
      */
     @GET("games/{gameId}/players")
@@ -53,8 +54,8 @@ public interface GamesAPI {
     /**
      * Gets the {@link Player} from the {@link Game}.
      *
-     * @param gameId
-     * @param playerId
+     * @param gameId of the game.
+     * @param playerId of the player.
      * @return {@link Player}
      */
     @GET("games/{gameId}/players/{playerId}")
@@ -64,41 +65,43 @@ public interface GamesAPI {
     /**
      * Joins the {@link Player} to the {@link Game}.
      *
-     * @param gameId
-     * @param playerId
-     * @return
+     * @param gameId of the game.
+     * @param playerId of the player.
+     * @param playerName of the player.
+     * @param playerURI of the player.
+     * @return Void
      */
     @PUT("games/{gameId}/players/{playerId}")
-    Call<String> joinPlayer(@Path("gameId") String gameId, @Path("playerId") String playerId,
-                            @Query("name") String name, @Query("uri") String playerURI);
+    Call<Void> joinPlayer(@Path("gameId") String gameId, @Path("playerId") String playerId,
+                          @Query("name") String playerName, @Query("uri") String playerURI);
 
     /**
      * Removes the {@link Player} from the {@link Game}.
      *
-     * @param gameId
-     * @param playerId
-     * @return
+     * @param gameId of the game.
+     * @param playerId of the player.
+     * @return Void
      */
     @DELETE("games/{gameId}/players/{playerId}")
-    Call<String> deletePlayer(@Path("gameId") String gameId, @Path("playerId") String playerId);
+    Call<Void> deletePlayer(@Path("gameId") String gameId, @Path("playerId") String playerId);
 
 
     /**
      * Sets a {@link Player} ready for the {@link Game}.
      *
-     * @param gameId
-     * @param playerId
-     * @return
+     * @param gameId of the game.
+     * @param playerId of the player.
+     * @return Void
      */
     @PUT("games/{gameId}/players/{playerId}/ready")
-    Call<String> setPlayerReady(@Path("gameId") String gameId, @Path("playerId") String playerId);
+    Call<Void> setPlayerReady(@Path("gameId") String gameId, @Path("playerId") String playerId);
 
 
     /**
      * Gets the ready status of a {@link Player} for a {@link Game}.
      *
-     * @param gameId
-     * @param playerId
+     * @param gameId of the game.
+     * @param playerId of the player.
      * @return boolean
      */
     @GET("games/{gameId}/players/{playerId}/ready")
@@ -108,7 +111,7 @@ public interface GamesAPI {
     /**
      * Gets the {@link Player} that is active and has to take action.
      *
-     * @param gameId
+     * @param gameId of the game.
      * @return {@link Player}
      */
     @GET("games/{gameid}/players/current")
@@ -118,7 +121,7 @@ public interface GamesAPI {
     /**
      * Gets the {@link Player} that is holding the turn mutex.
      *
-     * @param gameId
+     * @param gameId of the game.
      * @return {@link Player}
      */
     @GET("games/{gameid}/players/turn")
@@ -128,19 +131,21 @@ public interface GamesAPI {
     /**
      * Sets the turn mutex for the {@link Player}.
      *
-     * @param gameId
-     * @return
+     * @param gameId of the game.
+     * @param playerId of the player.
+     * @param player {@link Player}
+     * @return Void
      */
     @PUT("games/{gameid}/players/turn")
-    Call<String> setTurnPlayer(@Path("gameId") String gameId);
+    Call<Void> setTurnPlayer(@Path("gameId") String gameId, @Query("player") String playerId, @Body Player player);
 
 
     /**
      * Deletes the turn mutex for the {@link Player}.
      *
-     * @param gameId
-     * @return
+     * @param gameId of the game.
+     * @return Void
      */
     @DELETE("games/{gameid}/players/turn")
-    Call<String> removeTurnPlayer(@Path("gameId") String gameId);
+    Call<Void> removeTurnPlayer(@Path("gameId") String gameId);
 }

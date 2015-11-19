@@ -3,10 +3,7 @@ package de.hawhamburg.vs.wise15.superteam.client.ui;
 import de.hawhamburg.vs.wise15.superteam.client.Client;
 import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.api.PlayersAPI;
-import de.hawhamburg.vs.wise15.superteam.client.model.Game;
-import de.hawhamburg.vs.wise15.superteam.client.model.GameCollection;
-import de.hawhamburg.vs.wise15.superteam.client.model.Player;
-import de.hawhamburg.vs.wise15.superteam.client.model.PlayerCollection;
+import de.hawhamburg.vs.wise15.superteam.client.model.*;
 import retrofit.Response;
 import retrofit.Retrofit;
 
@@ -72,21 +69,23 @@ public class SearchForm {
 
         Player player;
 
-        try {
-            Response<Player> playerResponse = playersAPI.createPlayer().execute();
-            if (playerResponse.isSuccess()) {
-                player = playerResponse.body();
-            } else {
-                errorPlayerNotCreated(new IOException(playerResponse.message()));
-                return false;
-            }
-        } catch (IOException e) {
-            errorPlayerNotCreated(e);
-            return false;
-        }
+//        try {
+//            Response<Player> playerResponse = playersAPI.createPlayer().execute();
+//            if (playerResponse.isSuccess()) {
+//                player = playerResponse.body();
+//            } else {
+//                errorPlayerNotCreated(new IOException(playerResponse.message()));
+//                return false;
+//            }
+//        } catch (IOException e) {
+//            errorPlayerNotCreated(e);
+//            return false;
+//        }
+
+        player = new Player("1337", playerNameTxt.getText(), "", new Place(""), 42);
 
         try {
-            Response<String> joinResponse = gamesAPI.joinPlayer(
+            Response<Void> joinResponse = gamesAPI.joinPlayer(
                     game.getGameid(),
                     player.getId(),
                     playerNameTxt.getText(),

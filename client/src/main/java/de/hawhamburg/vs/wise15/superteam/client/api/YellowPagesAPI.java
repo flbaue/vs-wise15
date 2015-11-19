@@ -12,9 +12,10 @@ import retrofit.http.Path;
 public interface YellowPagesAPI {
 
     /**
-     * Gets all Service Paths of a type.
+     * Gets all service paths of a type.
+     * The paths include the ids to get a {@link Service}.
      *
-     * @param type
+     * @param type of the service
      * @return {@link ServiceCollection}
      */
     @GET("services/of/type/{type}")
@@ -23,7 +24,7 @@ public interface YellowPagesAPI {
     /**
      * Gets the {@link Service}.
      *
-     * @param type
+     * @param serviceId of the service
      * @return {@link Service}
      */
     @GET("services/{serviceId}")

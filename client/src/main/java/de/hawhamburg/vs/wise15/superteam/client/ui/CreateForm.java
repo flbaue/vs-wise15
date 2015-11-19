@@ -57,7 +57,7 @@ public class CreateForm {
         protected Void doInBackground() {
 
             try {
-                Response<Game> response = gamesAPI.createGame().execute();
+                Response<Game> response = gamesAPI.createGame(new Game()).execute();
                 if (response.isSuccess()) {
                     game = response.body();
                 }
