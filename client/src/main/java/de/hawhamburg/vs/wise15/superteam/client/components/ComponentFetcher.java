@@ -1,4 +1,4 @@
-package de.hawhamburg.vs.wise15.superteam.client.service;
+package de.hawhamburg.vs.wise15.superteam.client.components;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -6,7 +6,6 @@ import de.hawhamburg.vs.wise15.superteam.client.api.YellowPagesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.model.Service;
 import de.hawhamburg.vs.wise15.superteam.client.model.ServiceCollection;
 import retrofit.Response;
-import retrofit.Retrofit;
 
 import javax.swing.*;
 import java.io.IOException;

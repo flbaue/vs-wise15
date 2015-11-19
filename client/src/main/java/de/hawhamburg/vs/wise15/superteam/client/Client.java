@@ -3,8 +3,8 @@ package de.hawhamburg.vs.wise15.superteam.client;
 import com.squareup.okhttp.OkHttpClient;
 import de.hawhamburg.vs.wise15.superteam.client.api.YellowPagesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
-import de.hawhamburg.vs.wise15.superteam.client.service.ComponentsLocatorService;
-import de.hawhamburg.vs.wise15.superteam.client.service.ServiceComponents;
+import de.hawhamburg.vs.wise15.superteam.client.components.ComponentsLocator;
+import de.hawhamburg.vs.wise15.superteam.client.components.ComponentsHolder;
 import de.hawhamburg.vs.wise15.superteam.client.ui.*;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
@@ -22,7 +22,7 @@ public class Client {
     private final CreateForm createForm;
     private final LobbyForm lobbyForm;
     private final GameForm gameForm;
-    private final ServiceComponents serviceComponents;
+    private final ComponentsHolder componentsHolder;
     private JFrame frame;
 
 
@@ -35,10 +35,10 @@ public class Client {
                 .client(httpClient)
                 .build();
 
-        serviceComponents = new ServiceComponents();
+        componentsHolder = new ComponentsHolder();
 
-        new ComponentsLocatorService()
-                .holder(serviceComponents)
+        new ComponentsLocator()
+                .holder(componentsHolder)
                 .api(retrofit.create(YellowPagesAPI.class))
                 .httpClient(httpClient)
                 .start();

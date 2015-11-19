@@ -1,11 +1,11 @@
-package de.hawhamburg.vs.wise15.superteam.client.service;
+package de.hawhamburg.vs.wise15.superteam.client.components;
 
 import de.hawhamburg.vs.wise15.superteam.client.model.Service;
 
 /**
  * Created by florian on 19.11.15.
  */
-public class ServiceComponents {
+public class ComponentsHolder {
 
     private Service gameService;
     private Service boardsService;
