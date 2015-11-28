@@ -1,12 +1,11 @@
 package haw.vs.superteam.gamesservice;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import haw.vs.superteam.gamesservice.model.*;
 
 import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 /**
@@ -15,8 +14,14 @@ import java.util.Set;
 public class GameController {
 
     private Gson gson = new Gson();
-    private Set<Game> games;
+    private Set<Game> games = new HashSet<>();
+    private Components components;
 
+
+    public GameController() {
+        components = new Components();
+        //TODO set component paths
+    }
 
     public GameCollection getAll() {
 
@@ -24,100 +29,123 @@ public class GameController {
     }
 
 
-    public Optional<Game> createNewGame(String json) {
+    public Game createNewGame() {
+        Game game = new Game(String.valueOf(games.size()));
+        games.add(game);
 
-        Optional<Game> game = null;
-
-        try {
-            game = Optional.ofNullable(gson.fromJson(json, Game.class));
-        } catch (JsonSyntaxException e) {
-            game = Optional.empty();
-        }
-
-        if (game.isPresent()) {
-            games.add(game.get());
-        }
+        game.setComponents(components);
+        game.setUri("");
+        //TODO set URI?
 
         return game;
     }
 
 
-    public Optional<Game> getGame(String gameId) {
-
-        Optional<Game> game = games.stream()
-                .filter(g -> g.getGameid().equals(gameId))
-                .findAny();
-
-        return game;
-    }
-
-
-    public Optional<PlayerCollection> getPlayersFromGame(String gameId) {
-
-        Optional<Game> game = games.stream()
-                .filter(g -> g.getGameid().equals(gameId))
-                .findAny();
-
-        Optional<PlayerCollection> players;
-        if (game.isPresent()) {
-            players = Optional.ofNullable(game.get().getPlayers());
-        } else {
-            players = Optional.empty();
+    public Game getGame(String gameId) {
+        for (Game game : games) {
+            if (game.getGameid().equals(gameId)) {
+                return game;
+            }
         }
-        return Optional.empty();
-    }
-
-
-    public Optional<Player> getPlayerFromGame(String gameId, String playerId) {
-
-        return games.stream()
-                .filter(g -> g.getGameid().equals(gameId))
-                .map(Game::getPlayers)
-                .filter(Objects::nonNull)
-                .flatMap(pc -> pc.getPlayers().stream())
-                .filter(p -> p.getId().equals(playerId))
-                .findAny();
+        return null;
     }
 
 
     public Boolean addPlayerToGame(String gameId, String playerId, String playerName, String playerURI) {
-        new Player();
+        Game game = getGame(gameId);
+        if (game == null) {
+            return false;
+        }
+
+        game.addNewPlayer(new Player(playerId, playerName, playerURI));
+
+        return true;
+    }
 
 
+    public Player getPlayerFromGame(String gameId, String playerId) {
+        Game game = getGame(gameId);
+        if (game == null) {
+            return null;
+        }
+
+        for (Player player : game.getPlayers().getPlayers()) {
+            if (player.getId().equals(playerId)) {
+                return player;
+            }
+        }
 
         return null;
     }
 
-
-    public void removePlayerFromGame(String gameId, String playerId) {
-
-
+    public void togglePlayerReady(String gameId, String playerId) {
+        Player player = getPlayerFromGame(gameId, playerId);
+        if (player != null) {
+            player.setReady(!player.isReady());
+        }
     }
 
+    public void removePlayerFromGame(String gameId, String playerId) {
+        Game game = getGame(gameId);
+        if (game != null) {
+            game.removePlayer(playerId);
+        }
+    }
 
-    public boolean isPlayerReady(String gameId, String playerId) {
-
+    public Boolean isPlayerReady(String gameId, String playerId) {
+        Player player = getPlayerFromGame(gameId, playerId);
+        if (player != null) {
+            return player.isReady();
+        }
         return false;
     }
 
-
-    public void togglePlayerReady(String gameId, String playerId) {
-
+    public PlayerCollection getPlayersFromGame(String gameId) {
+        Game game = getGame(gameId);
+        if (game == null) {
+            return new PlayerCollection(new LinkedList<>());
+        }
+        return game.getPlayers();
     }
 
     public Player getCurrentPlayer(String gameId) {
-        return null;
+        Game game = getGame(gameId);
+        if (game == null) {
+            return null;
+        }
+
+        return game.getCurrentPlayer();
     }
 
-    public Player getPlayWithMutex(String gameId) {
-        return null;
-    }
-
-    public MutexStatus setMutexToPlayer(String gameId, String playerId) {
-        return null;
+    public Player getPlayerWithMutex(String gameId) {
+        Game game = getGame(gameId);
+        if (game == null) {
+            return null;
+        }
+        return game.getMutexPlayer();
     }
 
     public void removeMutex(String gameId) {
+        Game game = getGame(gameId);
+        if (game == null) {
+            return;
+        }
+        game.setMutexPlayer(null);
+    }
 
+    public MutexStatus setMutex(String gameId, Player player) {
+        Game game = getGame(gameId);
+        if (game == null) {
+            return MutexStatus.FAILED;
+        }
+
+        if (game.getMutexPlayer() == null) {
+            game.setMutexPlayer(player);
+            return MutexStatus.SUCCESS;
+        } else if (game.getMutexPlayer().equals(player)) {
+            return MutexStatus.ALREADY_HOLDING;
+        } else {
+            return MutexStatus.FAILED;
+        }
     }
 }

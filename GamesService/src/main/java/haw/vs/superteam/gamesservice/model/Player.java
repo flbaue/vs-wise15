@@ -10,7 +10,7 @@ public class Player {
     private String uri;
     private Place place;
     private int position;
-
+    private transient boolean ready;
 
     public Player() {
 
@@ -24,6 +24,15 @@ public class Player {
         this.uri = uri;
         this.place = place;
         this.position = position;
+    }
+
+    public Player(String playerId, String playerName, String playerURI) {
+
+        id = playerId;
+        name = playerName;
+        uri = playerURI;
+        place = null;
+        position = -1;
     }
 
 
@@ -50,9 +59,41 @@ public class Player {
         return place;
     }
 
+    public void setPlace(Place place) {
+        this.place = place;
+    }
 
     public int getPosition() {
 
         return position;
     }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public boolean isReady() {
+        return ready;
+    }
+
+    public void setReady(boolean ready) {
+        this.ready = ready;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Player player = (Player) o;
+
+        return !(id != null ? !id.equals(player.id) : player.id != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }
+

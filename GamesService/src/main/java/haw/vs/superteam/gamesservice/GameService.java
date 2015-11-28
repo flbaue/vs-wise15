@@ -9,9 +9,6 @@ import spark.Request;
 import spark.Response;
 import spark.ResponseTransformer;
 
-
-import java.util.Optional;
-
 import static spark.Spark.*;
 
 /**
@@ -22,6 +19,7 @@ public class GameService {
     public static final String APPLICATION_JSON = "application/json";
 
     private GameController gameController = new GameController();
+    private Gson gson = new Gson();
 
 
     public static void main(String[] args) {
@@ -57,24 +55,13 @@ public class GameService {
         delete("/games/:gameId/players/turn", this::removeMutex);
     }
 
-    private Object removeMutex(Request request, Response response) {
-
-        gameController.removeMutex(request.params(":gameId"));
-
-        response.status(200);
-        response.type(APPLICATION_JSON);
-        return null;
-    }
-
     private Object setMutext(Request request, Response response) {
 
-        MutexStatus mutex = gameController.setMutexToPlayer(
-                request.params(":gameId"),
-                request.queryParams("player")
-        );
+        Player player = gson.fromJson(request.body(), Player.class);
+        MutexStatus mutexStatus = gameController.setMutex(request.params(":gameId"), player);
 
         int status;
-        switch (mutex) {
+        switch (mutexStatus) {
             case SUCCESS:
                 status = 201;
                 break;
@@ -83,76 +70,78 @@ public class GameService {
                 break;
             default:
                 status = 200;
-                break;
         }
-
         response.status(status);
         response.type(APPLICATION_JSON);
-        return null;
+        return player;
     }
 
+    private Object removeMutex(Request request, Response response) {
+        gameController.removeMutex(request.params(":gameId"));
+        return null;
+    }
 
     private Object getPlayerWithMutex(Request request, Response response) {
+        Player player = gameController.getPlayerWithMutex(request.params(":gameId"));
 
-        Player player = gameController.getPlayWithMutex(request.params(":gameId"));
-
-        response.status(200);
+        int status = (player != null) ? 200 : 404;
+        response.status(status);
         response.type(APPLICATION_JSON);
         return player;
     }
-
 
     private Object getCurrentPlayer(Request request, Response response) {
-
         Player player = gameController.getCurrentPlayer(request.params(":gameId"));
 
-        response.status(200);
+        int status = (player != null) ? 200 : 404;
+        response.status(status);
         response.type(APPLICATION_JSON);
         return player;
     }
 
+    private Object getPlayersFromGame(Request request, Response response) {
+        PlayerCollection playerCollection = gameController.getPlayersFromGame(request.params(":gameId"));
 
-    private Object togglePlayerReady(Request request, Response response) {
-
-        gameController.togglePlayerReady(
-                request.params(":gameId"),
-                request.params(":playerId")
-        );
-
-        response.status(200);
+        int status = (playerCollection != null) ? 200 : 404;
+        response.status(status);
         response.type(APPLICATION_JSON);
-        return null;
+        return playerCollection;
     }
 
+    private Object getGame(Request request, Response response) {
+        Game game = gameController.getGame(request.params(":gameId"));
+
+        int status = (game != null) ? 200 : 404;
+        response.status(status);
+        response.type(APPLICATION_JSON);
+        return game;
+    }
 
     private Object isPlayerReady(Request request, Response response) {
-
-        boolean ready = gameController.isPlayerReady(
-                request.params(":gameId"),
-                request.params(":playerId")
-        );
-
-        response.status(200);
-        response.type(APPLICATION_JSON);
-        return ready;
+        Boolean status = gameController.isPlayerReady(request.params(":gameId"), request.params(":playerId"));
+        return status;
     }
 
-
     private Object removePlayerFromGame(Request request, Response response) {
-
-        gameController.removePlayerFromGame(
-                request.params(":gameId"),
-                request.params(":playerId")
-        );
-
-        response.status(200);
-        response.type(APPLICATION_JSON);
+        gameController.removePlayerFromGame(request.params(":gameId"), request.params(":playerId"));
         return null;
     }
 
+    private Object getPlayerFromGame(Request request, Response response) {
+        Player player = gameController.getPlayerFromGame(request.params(":gameId"), request.params(":playerId"));
+
+        int status = (player != null) ? 200 : 400;
+        response.status(status);
+        response.type(APPLICATION_JSON);
+        return player;
+    }
+
+    private Object togglePlayerReady(Request request, Response response) {
+        gameController.togglePlayerReady(request.params(":gameId"), request.params(":playerId"));
+        return null;
+    }
 
     private Object addPlayerToGame(Request request, Response response) {
-
         Boolean success = gameController.addPlayerToGame(
                 request.params(":gameId"),
                 request.params(":playerId"),
@@ -166,51 +155,13 @@ public class GameService {
         return null;
     }
 
-
-    private Object getPlayerFromGame(Request request, Response response) {
-
-        Optional<Player> player = gameController.getPlayerFromGame(
-                request.params(":gameId"),
-                request.params(":playerId")
-        );
-
-        int status = (player.isPresent()) ? 200 : 404;
-        response.status(status);
-        response.type(APPLICATION_JSON);
-        return player;
-    }
-
-
-    private Object getPlayersFromGame(Request request, Response response) {
-
-        Optional<PlayerCollection> players = gameController.getPlayersFromGame(request.params(":gameId"));
-
-        int status = (players.isPresent()) ? 200 : 404;
-        response.status(status);
-        response.type(APPLICATION_JSON);
-        return players.orElse(null);
-    }
-
-
-    private Object getGame(Request request, Response response) {
-
-        Optional<Game> game = gameController.getGame(request.params(":gameId"));
-
-        int status = (game.isPresent()) ? 200 : 404;
-        response.status(status);
-        response.type(APPLICATION_JSON);
-        return game.orElse(null);
-    }
-
-
     private Object createNewGame(Request request, Response response) {
 
-        Optional<Game> game = gameController.createNewGame(request.body());
+        Game game = gameController.createNewGame();
 
-        int status = (game.isPresent()) ? 201 : 400;
-        response.status(status);
+        response.status(200);
         response.type(APPLICATION_JSON);
-        return game.orElse(null);
+        return game;
     }
 
 

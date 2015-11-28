@@ -70,4 +70,32 @@ public class Components {
 
         return events;
     }
+
+    public void setGame(String game) {
+        this.game = game;
+    }
+
+    public void setDice(String dice) {
+        this.dice = dice;
+    }
+
+    public void setBoard(String board) {
+        this.board = board;
+    }
+
+    public void setBank(String bank) {
+        this.bank = bank;
+    }
+
+    public void setBroker(String broker) {
+        this.broker = broker;
+    }
+
+    public void setDecks(String decks) {
+        this.decks = decks;
+    }
+
+    public void setEvents(String events) {
+        this.events = events;
+    }
 }

@@ -1,5 +1,8 @@
 package haw.vs.superteam.gamesservice.model;
 
+import java.util.LinkedList;
+import java.util.Objects;
+
 /**
  * Created by florian on 16.11.15.
  */
@@ -10,14 +13,16 @@ public class Game {
     private boolean started;
     private String uri;
     private Components components;
+    private transient Player currentPlayer;
+    private transient Player mutexPlayer;
 
 
     public Game() {
-
     }
 
 
     public Game(String gameid, PlayerCollection players, boolean started, String uri, Components components) {
+        Objects.requireNonNull(gameid);
 
         this.gameid = gameid;
         this.players = players;
@@ -26,12 +31,21 @@ public class Game {
         this.components = components;
     }
 
+    public Game(String gameid) {
+        this.gameid = gameid;
+        this.players = new PlayerCollection(new LinkedList<>());
+    }
+
 
     public String getGameid() {
 
         return gameid;
     }
 
+    public void setGameid(String gameid) {
+        Objects.requireNonNull(gameid);
+        this.gameid = gameid;
+    }
 
     public PlayerCollection getPlayers() {
 
@@ -50,17 +64,24 @@ public class Game {
         return uri;
     }
 
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
 
     public Components getComponents() {
 
         return components;
     }
 
+    public void setComponents(Components components) {
+        this.components = components;
+    }
 
-    @Override
-    public String toString() {
-
-        return gameid;
+    public void addNewPlayer(Player player) {
+        if (players == null) {
+            players = new PlayerCollection(new LinkedList<>());
+        }
+        players.addPlayer(player);
     }
 
     @Override
@@ -71,10 +92,31 @@ public class Game {
         Game game = (Game) o;
 
         return gameid.equals(game.gameid);
+
     }
 
     @Override
     public int hashCode() {
         return gameid.hashCode();
+    }
+
+    public void removePlayer(String playerId) {
+        players.removePlayer(playerId);
+    }
+
+    public Player getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public void setCurrentPlayer(Player currentPlayer) {
+        this.currentPlayer = currentPlayer;
+    }
+
+    public Player getMutexPlayer() {
+        return mutexPlayer;
+    }
+
+    public void setMutexPlayer(Player mutexPlayer) {
+        this.mutexPlayer = mutexPlayer;
     }
 }
