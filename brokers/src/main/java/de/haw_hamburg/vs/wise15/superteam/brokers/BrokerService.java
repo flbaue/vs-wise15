@@ -1,5 +1,7 @@
 package de.haw_hamburg.vs.wise15.superteam.brokers;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import spark.Request;
 import spark.Response;
 
@@ -9,6 +11,9 @@ import static spark.Spark.*;
  * Created by masha on 28.11.15.
  */
 public class BrokerService {
+
+    Gson gson = new Gson();
+    Broker broker;
 
     public static void main(String[] args) {
 
@@ -75,6 +80,12 @@ public class BrokerService {
     }
 
     private Object getPlace(Request request, Response response) {
+        if (broker.getBrokerId().equals(request.params(":gameId"))){
+            response.status(200);
+            response.body(gson.toJson(broker));
+            return response;
+        }
+        response.status(404);
         return null;
     }
 
@@ -83,6 +94,12 @@ public class BrokerService {
     }
 
     private Object getBroker(Request request, Response response) {
+        if (broker.getBrokerId().equals(request.params(":gameId"))){
+            response.status(200);
+            response.body(gson.toJson(broker));
+            return response;
+        }
+        response.status(404);
         return null;
     }
 
@@ -99,6 +116,14 @@ public class BrokerService {
     }
 
     private Object createBroker(Request request, Response response) {
-        return null;
+        String gameId = request.params(":gameId");
+        try {
+            Game game = gson.fromJson(request.body(), Game.class);
+            broker = new Broker(gameId, game);
+            response.status(201);
+            return null;
+        }catch(JsonSyntaxException e){
+            return "JsonSyntaxException from put broers/gameId";
+        }
     }
 }
