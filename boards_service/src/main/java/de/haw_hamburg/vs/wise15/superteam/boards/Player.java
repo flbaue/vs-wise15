@@ -41,6 +41,14 @@ public class Player {
     public String getPlayerId() {
         return playerId;
     }
+    
+    public int getPosition() {
+    	return position;
+    }
+    
+    public void setPosition(int position) {
+    	this.position = position;
+    }
 
     public void setPlayerId(String playerId) {
         this.playerId = playerId;
