@@ -1,5 +1,7 @@
 package de.haw_hamburg.vs.wise15.superteam.banks;
 
+import java.math.BigDecimal;
+
 /**
  * Created by masha on 16.11.15.
  */
@@ -11,13 +13,16 @@ public class Transaction {
     private String to;
     private String reason;
     private Event event;
+    private BigDecimal amount;
 
-    public Transaction(String transferId, String from, String to, String reason, Event event) {
+
+    public Transaction(String transferId, String from, String to, String reason, Event event, BigDecimal amount) {
         this.transferId=transferId;
         this.from= from;
         this.to = to;
         this.reason = reason;
         this.event = event;
+        this.amount = amount;
     }
 
     public String getFrom() {

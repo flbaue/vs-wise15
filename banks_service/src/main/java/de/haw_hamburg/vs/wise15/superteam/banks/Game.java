@@ -11,6 +11,12 @@ public class Game {
     private ArrayList<Player> playerList;
     private Component component;
 
+    public Game(String s, ArrayList<Player> players, Component component) {
+        this.gameId=s;
+        this.playerList=players;
+        this.component=component;
+    }
+
     public String getGameId() {
         return gameId;
     }

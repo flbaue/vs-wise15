@@ -1,5 +1,7 @@
 package de.haw_hamburg.vs.wise15.superteam.banks;
 
+import java.math.BigDecimal;
+
 /**
  * Created by masha on 16.11.15.
  */
@@ -12,15 +14,6 @@ public class Player {
     private Place place;
     private int position;
 
-    public Player(String playerId, String name, String uri, Place place, int position) {
-        this.playerId = playerId;
-        this.name = name;
-        this.uri = uri;
-        this.place = place;
-        this.position = position;
-
-
-    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -37,7 +30,15 @@ public class Player {
         return playerId.hashCode();
     }
 
+    public Player(String playerId, String name, String uri, Place place, int position) {
+        this.playerId = playerId;
+        this.name = name;
+        this.uri = uri;
+        this.place = place;
+        this.position = position;
 
+
+    }
 
     public String getPlayerId() {
         return playerId;

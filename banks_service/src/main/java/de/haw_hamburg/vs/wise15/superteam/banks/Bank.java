@@ -1,7 +1,5 @@
 package de.haw_hamburg.vs.wise15.superteam.banks;
 
-import java.lang.reflect.Array;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 
 /**
@@ -24,7 +22,9 @@ public class Bank {
     }
 
     public Bank(Game game){
-
+        this.transListNichtBestaetigt= new ArrayList<Transaction>();
+        this.transactionList= new ArrayList<Transaction>();
+        this.accountList = new ArrayList<Account>();
         this.bankId = game.getGameId();
        this.game = game;
     }

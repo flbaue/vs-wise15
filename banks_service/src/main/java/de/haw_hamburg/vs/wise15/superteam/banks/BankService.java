@@ -10,35 +10,43 @@ import java.util.ArrayList;
 
 import static spark.Spark.*;
 
-/**
- * Created by masha on 16.11.15.
- */
-/*
-
-(Lokale) Transaktion: Achten Sie darauf, dass ein Geldtransfer immer als eine Transaktion zu verstehen ist:
-entweder wird diese ganz – oder gar nicht – ausgeführt.
-Frage: Wie könnte man eine at-most-once Fehlersemantik implementieren?
- */
 public class BankService {
 
     private Gson gson = new Gson();
-    private ArrayList<Bank> bankList;
+    private ArrayList<Bank> bankList = new ArrayList<Bank>();
     private int transferId = 0;
 
     public static void main(String[] args) {
         new BankService().run();
     }
 
-    private void run() {
+    public void run() {
         System.out.println("BankService is starting");
 
-        //den Status von der Bank ausgeben
+        //den Status von der Bank
+        //ok
         get("/", this::root);
 
-        //den Status von der Bank ausgeben
+        //ok
         put("/banks", this::createBank);
 
-        get("/banks/:gameId/transfer/:transferId", this::getTransfer);
+        post("/example/game", this::gameerst);
+
+        post("/example/player", this::playererst);
+
+        //Ok
+        get("/banks/:gameid/transfers", this::getTransfer);
+
+        //ok
+        get("/banks/:gameId/transfer/:transferId", this::getTransferById);
+
+        //Gets a banks
+        //ok
+        get("/banks/:gameid", this::getBank);
+
+        //places a banks
+        //ok
+        put("/banks/:gameid", this::createBank);
 
         //die Bank erstellen
         post("/banks", this::createBank);
@@ -65,26 +73,7 @@ public class BankService {
 
     }
 
-    private Object transBesaetigen(Request request, Response response) {
-        String transId = request.params(":transferId");
-        String gameId = request.params(":gameId");
-        BigDecimal amount = new BigDecimal(request.params(":amount"));
-        Bank bank = null;
-        for (Bank b : bankList) {
-            if (gameId.equals(b.getBankId())) {
-                bank = b;
-            }
-        }
-        for (Transaction trans : bank.getTransListNichtBestaetigt()) {
-            if (trans.getTransferId().equals(transId)) {
-                transaktionDurchfuehren(trans, bank, response, amount);
-            }
-        }
-
-        return "transBestatigt";
-    }
-
-    private Object getTransfer(Request request, Response response) {
+    public Object getTransferById(Request request, Response response) {
         System.out.println("put banks");
 
         Transaction transaction = null;
@@ -112,12 +101,70 @@ public class BankService {
         return null;
     }
 
-    private Object createBank(Request request, Response response) throws Exception {
+    public Object getBank(Request request, Response response) {
+        String gameId = request.params(":gameId");
+        for (Bank b : bankList) {
+            if (gameId.equals(b.getBankId())) {
+                response.status(200);
+                return gson.toJson(b);
+            }
+        }
+        response.status(404);
+        return null;
+    }
+
+    public Object gameerst(Request request, Response response) {
+        Game game = new Game("123", new ArrayList<Player>(), new Component());
+        response.body(gson.toJson(game));
+        return gson.toJson(game);
+    }
+
+    public Object playererst(Request request, Response response) {
+        Player player = new Player("1", "Maria", "uri", new Place("Schönbrunn"), 1);
+        response.body(gson.toJson(player));
+        return gson.toJson(player);
+    }
+
+    public Object transBesaetigen(Request request, Response response) {
+        String transId = request.params(":transferId");
+        String gameId = request.params(":gameId");
+        BigDecimal amount = new BigDecimal(request.params(":amount"));
+        Bank bank = null;
+        for (Bank b : bankList) {
+            if (gameId.equals(b.getBankId())) {
+                bank = b;
+            }
+        }
+        for (Transaction trans : bank.getTransListNichtBestaetigt()) {
+            if (trans.getTransferId().equals(transId)) {
+                transaktionDurchfuehren(trans, bank, response, amount);
+            }
+        }
+
+        return "transBestatigt";
+    }
+
+    public Object getTransfer(Request request, Response response) {
+        String gameId = request.params(":gameId");
+        ArrayList<Transaction> transList= new ArrayList<Transaction>();
+        for (Bank b : bankList) {
+            if (gameId.equals(b.getBankId())) {
+                transList = b.getTransactionList();
+                response.status(200);
+                return gson.toJson(transList);
+            }
+        }
+        response.status(404);
+        return null;
+    }
+
+    public Object createBank(Request request, Response response) throws Exception {
 
         System.out.println("put banks");
 
         Game game = null;
         Bank bank;
+        String str = request.body();
         try {
             game = gson.fromJson(request.body(), Game.class);
         } catch (JsonSyntaxException e) {
@@ -128,7 +175,7 @@ public class BankService {
 
         if (game == null) {
             response.status(403);
-            return "test";
+            return "game is null";
         }
 
         bank = new Bank(game);
@@ -137,15 +184,16 @@ public class BankService {
         return "";
     }
 
-    private String root(Request request, Response response) throws Exception {
+    public String root(Request request, Response response) throws Exception {
 
-        return "Hallo Bianca";
+        return "BankService answered: pong";
     }
 
-    private Object transferMoneyfromAccount(Request request, Response response) {
+    public Object transferMoneyfromAccount(Request request, Response response) {
         Transaction transaction = null;
         Player playerTo;
         Player playerFrom;
+        BigDecimal amount;
         Game game;
         String gameId;
         String from;
@@ -155,7 +203,8 @@ public class BankService {
         gameId = request.params(":gameId");
         from = request.params(":from");
         to = request.params(":to");
-        transaction = new Transaction(Integer.toString(transferId), from, to, reason, new Event());
+        amount = new BigDecimal(request.params(":amount"));
+        transaction = new Transaction(Integer.toString(transferId), from, to, reason, new Event(), amount);
         transferId++;
         for (Bank b : bankList) {
             if (b.getBankId().equals(gameId)) {
@@ -175,14 +224,14 @@ public class BankService {
             }
             response.status(200);
             response.body(Integer.toString(transferId));
-            response.header("Bitte aufrufen:","/banks/:gameid/transfer/:amount/:transferId");
+            response.header("Bitte aufrufen:", "/banks/:gameid/transfer/:amount/:transferId");
             return "";
         }
         return "";
     }
 
 
-    private Object transferMoneytoBank(Request request, Response response) {
+    public Object transferMoneytoBank(Request request, Response response) {
         Transaction transaction = null;
         Player player;
         Game game;
@@ -198,21 +247,21 @@ public class BankService {
         from = request.params(":from");
         gameId = request.params(":gameId");
         amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(Integer.toString(transferId), from, "bank", reason, new Event());
+        transaction = new Transaction(Integer.toString(transferId), from, "bank", reason, new Event(), amount);
         transferId++;
         for (Bank b : bankList) {
             if (b.getBankId().equals(gameId)) {
                 b.addTransNichtBestaetigt(transaction);
                 response.status(201);
                 response.body(transaction.getTransferId());
-                response.header("Bitte aufrufen:","/banks/:gameid/transfer/:amount/:transferId");
+                response.header("Bitte aufrufen:", "/banks/:gameid/transfer/:amount/:transferId");
                 return "";
             }
         }
         return "";
     }
 
-    private Object transferMoneyfromBank(Request request, Response response) {
+    public Object transferMoneyfromBank(Request request, Response response) {
         Transaction transaction = null;
         Player player;
         Game game;
@@ -230,7 +279,7 @@ public class BankService {
         gameId = request.params(":gameId");
         to = request.params(":to");
         amount = new BigDecimal((request.params(":amount")));
-        transaction = new Transaction(Integer.toString(transferId), "bank", to, reason, new Event());
+        transaction = new Transaction(Integer.toString(transferId), "bank", to, reason, new Event(), amount);
         transferId++;
         for (Bank b : bankList) {
             if (b.getBankId().equals(gameId)) {
@@ -241,11 +290,11 @@ public class BankService {
             }
         }
         response.status(403);
-        response.header("Bitte aufrufen:","/banks/:gameid/transfer/:amount/:transferId");
+        response.header("Bitte aufrufen:", "/banks/:gameid/transfer/:amount/:transferId");
         return "";
     }
 
-    private BigDecimal getAccountBalance(Request request, Response response) {
+    public BigDecimal getAccountBalance(Request request, Response response) {
         String playerId;
         String gameId;
         BigDecimal saldo;
@@ -270,7 +319,7 @@ public class BankService {
         return r;
     }
 
-    private Object transaktionDurchfuehren(Transaction trans, Bank b, Response response, BigDecimal amount) {
+    public Object transaktionDurchfuehren(Transaction trans, Bank b, Response response, BigDecimal amount) {
         if (trans.getFrom().equals("bank")) {
             bezahlen(trans, b, trans.getTo(), response, amount);
         } else if (trans.getTo().equals("bank")) {
@@ -287,7 +336,7 @@ public class BankService {
         return "";
     }
 
-    private Object bezahlen(Transaction trans, Bank b, String playerId, Response response, BigDecimal amount) {
+    public Object bezahlen(Transaction trans, Bank b, String playerId, Response response, BigDecimal amount) {
         for (Account a : b.getAccountList()) {
             if (a.getPlayer().getPlayerId().equals(playerId)) {
                 if (a.getSaldo().compareTo(amount.abs()) < 0) {
@@ -302,12 +351,14 @@ public class BankService {
     }
 
     //Player existiert schon, nur sein Account noch nicht
-    private Object createAccount(Request request, Response response) {
+    public Object createAccount(Request request, Response response) {
         String id = request.params(":gameId");
         Player player;
         Account account;
         Bank bank = null;
         try {
+            //ToDo
+            //Typeadapter für bigdecimal
             account = gson.fromJson(request.body(), Account.class);
         } catch (JsonSyntaxException e) {
             return "json exception";
