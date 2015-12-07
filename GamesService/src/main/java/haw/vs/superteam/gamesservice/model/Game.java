@@ -57,6 +57,16 @@ public class Game {
         return started;
     }
 
+    public boolean startGame() {
+        if (players != null && !players.isEmpty() && players.allPlayersReady() && !started) {
+            started = true;
+
+            //TODO set current player, etc...
+
+        }
+        return started;
+    }
+
 
     public String getUri() {
 

@@ -1,25 +1,40 @@
 package haw.vs.superteam.gamesservice;
 
 import com.google.gson.Gson;
+import haw.vs.superteam.gamesservice.api.BoardsAPI;
 import haw.vs.superteam.gamesservice.model.*;
+import retrofit.GsonConverterFactory;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by florian on 18.11.15.
  */
 public class GameController {
 
+    private static AtomicLong gameCounter = new AtomicLong(0);
+    private final Object createGameLock = new Object();
     private Gson gson = new Gson();
     private Set<Game> games = new HashSet<>();
     private Components components;
-
+    private BoardsAPI boardsAPI;
 
     public GameController() {
         components = new Components();
         //TODO set component paths
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(Utils.getUnsafeOkHttpClient())
+                .build();
+
+        boardsAPI = retrofit.create(BoardsAPI.class);
     }
 
     public GameCollection getAll() {
@@ -29,13 +44,21 @@ public class GameController {
 
 
     public Game createNewGame() {
-        Game game = new Game(String.valueOf(games.size()));
+
+
+        Game game = new Game(String.valueOf(gameCounter.incrementAndGet()));
         games.add(game);
 
         game.setComponents(components);
         game.setUri("");
         //TODO set URI?
 
+        try {
+            Response<Board> response = boardsAPI.createBoard(game.getGameid()).execute();
+            if(response.isSuccess()) {
+                game.getComponents().setBoard(boardsAPI.);
+            }
+        }
         return game;
     }
 

@@ -57,4 +57,12 @@ public class PlayerCollection {
         Optional<Player> player = getPlayers().stream().filter(p -> p.getId().equals(playerId)).findAny();
         return player.orElse(null);
     }
+
+    public boolean allPlayersReady(){
+        return getPlayers().stream().filter(p -> !p.isReady()).findAny().isPresent();
+    }
+
+    public boolean isEmpty(){
+        return getPlayers().isEmpty();
+    }
 }

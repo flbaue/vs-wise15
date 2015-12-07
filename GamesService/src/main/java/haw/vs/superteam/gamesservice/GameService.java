@@ -200,12 +200,7 @@ public class GameService {
 
     private Object root(Request request, Response response) {
 
-        String name = request.queryParams("name");
-        String message = (name == null || name.isEmpty()) ?
-                "Hello Buddy! I am the GameService, who are you?" :
-                "Hello " + name + "! I am the GameService. Nice to meet you!";
-
-        return message;
+        return "I am the GameService of team superteam";
     }
 
 
