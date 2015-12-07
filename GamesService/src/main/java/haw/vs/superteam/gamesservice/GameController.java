@@ -5,7 +5,6 @@ import haw.vs.superteam.gamesservice.model.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Set;
 
 /**
@@ -57,9 +56,7 @@ public class GameController {
             return false;
         }
 
-        game.addNewPlayer(new Player(playerId, playerName, playerURI));
-
-        return true;
+        return game.addNewPlayer(new Player(playerId, playerName, playerURI));
     }
 
 
@@ -69,13 +66,7 @@ public class GameController {
             return null;
         }
 
-        for (Player player : game.getPlayers().getPlayers()) {
-            if (player.getId().equals(playerId)) {
-                return player;
-            }
-        }
-
-        return null;
+        return game.getPlayer(playerId);
     }
 
     public void togglePlayerReady(String gameId, String playerId) {
@@ -103,7 +94,7 @@ public class GameController {
     public PlayerCollection getPlayersFromGame(String gameId) {
         Game game = getGame(gameId);
         if (game == null) {
-            return new PlayerCollection(new LinkedList<>());
+            return new PlayerCollection();
         }
         return game.getPlayers();
     }

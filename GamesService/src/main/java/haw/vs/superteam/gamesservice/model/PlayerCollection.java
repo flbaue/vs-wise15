@@ -1,8 +1,6 @@
 package haw.vs.superteam.gamesservice.model;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by florian on 16.11.15.
@@ -11,44 +9,52 @@ public class PlayerCollection {
 
     private List<Player> players;
 
-
-    public PlayerCollection() {
-
-    }
-
-
-    public PlayerCollection(List<Player> players) {
-
-        this.players = players;
-    }
-
-
     public List<Player> getPlayers() {
-
-        return players;
+        if (players == null) {
+            return Collections.emptyList();
+        } else {
+            return Collections.unmodifiableList(players);
+        }
     }
 
-    public void addPlayer(Player player) {
+    public synchronized boolean addPlayer(Player player) {
         if (players == null) {
-            players = new LinkedList<>();
+            players = new ArrayList<>();
         }
-        players.add(player);
-        int position = players.indexOf(player);
-        player.setPosition(position);
+
+        if (containsPlayer(player)) {
+            return false;
+        } else {
+            players.add(player);
+            int position = players.indexOf(player);
+            player.setPosition(position);
+            return true;
+        }
     }
 
-    public void removePlayer(String playerId) {
-        if (players == null) {
-            return;
-        }
-        Player player;
-        Iterator<Player> iterator = players.iterator();
-        while (iterator.hasNext()) {
-            player = iterator.next();
-            if (player.getId().equals(playerId)) {
-                iterator.remove();
+    public synchronized void removePlayer(String playerId) {
+        if (players != null && !players.isEmpty()) {
+            Player player;
+            Iterator<Player> iterator = players.iterator();
+            while (iterator.hasNext()) {
+                player = iterator.next();
+                if (player.getId().equals(playerId)) {
+                    iterator.remove();
+                }
             }
         }
-        return;
+    }
+
+    public boolean containsPlayer(Player player) {
+        if (players == null || players.isEmpty()) {
+            return false;
+        } else {
+            return players.stream().filter(p -> p.equals(player)).findAny().isPresent();
+        }
+    }
+
+    public Player getPlayer(String playerId) {
+        Optional<Player> player = getPlayers().stream().filter(p -> p.getId().equals(playerId)).findAny();
+        return player.orElse(null);
     }
 }

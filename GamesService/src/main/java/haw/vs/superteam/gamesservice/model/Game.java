@@ -1,6 +1,5 @@
 package haw.vs.superteam.gamesservice.model;
 
-import java.util.LinkedList;
 import java.util.Objects;
 
 /**
@@ -33,7 +32,7 @@ public class Game {
 
     public Game(String gameid) {
         this.gameid = gameid;
-        this.players = new PlayerCollection(new LinkedList<>());
+        this.players = new PlayerCollection();
     }
 
 
@@ -77,11 +76,11 @@ public class Game {
         this.components = components;
     }
 
-    public void addNewPlayer(Player player) {
+    public boolean addNewPlayer(Player player) {
         if (players == null) {
-            players = new PlayerCollection(new LinkedList<>());
+            players = new PlayerCollection();
         }
-        players.addPlayer(player);
+        return players.addPlayer(player);
     }
 
     @Override
@@ -118,5 +117,13 @@ public class Game {
 
     public void setMutexPlayer(Player mutexPlayer) {
         this.mutexPlayer = mutexPlayer;
+    }
+
+    public Player getPlayer(String playerId) {
+        if (players == null) {
+            return null;
+        } else {
+            return players.getPlayer(playerId);
+        }
     }
 }

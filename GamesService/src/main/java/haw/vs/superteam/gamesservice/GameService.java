@@ -9,6 +9,11 @@ import spark.Request;
 import spark.Response;
 import spark.ResponseTransformer;
 
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
 import static spark.Spark.*;
 
 /**
@@ -16,14 +21,19 @@ import static spark.Spark.*;
  */
 public class GameService {
 
-    public static final String APPLICATION_JSON = "application/json";
-
+    private static final String APPLICATION_JSON = "application/json";
+    private static final Logger log = Logger.getLogger(GameService.class.getName());
     private GameController gameController = new GameController();
     private Gson gson = new Gson();
 
 
     public static void main(String[] args) {
 
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setFormatter(new SimpleFormatter());
+        handler.setLevel(Level.ALL);
+        log.addHandler(handler);
+        log.setLevel(Level.ALL);
         new GameService().run();
     }
 
@@ -37,23 +47,24 @@ public class GameService {
         get("/games", this::getAllGames, jsonTransformer);
         post("/games", this::createNewGame, jsonTransformer);
 
-        get("/games/:gameId", this::getGame);
+        get("/games/:gameId", this::getGame, jsonTransformer);
 
-        get("/games/:gameId/players", this::getPlayersFromGame);
+        get("/games/:gameId/players", this::getPlayersFromGame, jsonTransformer);
 
-        get("/games/:gameId/players/:playerId", this::getPlayerFromGame);
-        put("/games/:gameId/players/:playerId", this::addPlayerToGame);
-        delete("/games/:gameId/players/:playerId", this::removePlayerFromGame);
+        get("/games/:gameId/players/:playerId", this::getPlayerFromGame, jsonTransformer);
+        put("/games/:gameId/players/:playerId", this::addPlayerToGame, jsonTransformer);
+        delete("/games/:gameId/players/:playerId", this::removePlayerFromGame, jsonTransformer);
 
         get("/games/:gameId/players/:playerId/ready", this::isPlayerReady);
-        put("/games/:gameId/players/:playerId/ready", this::togglePlayerReady);
+        put("/games/:gameId/players/:playerId/ready", this::togglePlayerReady, jsonTransformer);
 
-        get("/games/:gameId/players/current", this::getCurrentPlayer);
+        get("/games/:gameId/players/current", this::getCurrentPlayer, jsonTransformer);
 
-        get("/games/:gameId/players/turn", this::getPlayerWithMutex);
-        put("/games/:gameId/players/turn", this::setMutext);
-        delete("/games/:gameId/players/turn", this::removeMutex);
+        get("/games/:gameId/players/turn", this::getPlayerWithMutex, jsonTransformer);
+        put("/games/:gameId/players/turn", this::setMutext, jsonTransformer);
+        delete("/games/:gameId/players/turn", this::removeMutex, jsonTransformer);
     }
+
 
     private Object setMutext(Request request, Response response) {
 
@@ -76,10 +87,12 @@ public class GameService {
         return player;
     }
 
+
     private Object removeMutex(Request request, Response response) {
         gameController.removeMutex(request.params(":gameId"));
         return null;
     }
+
 
     private Object getPlayerWithMutex(Request request, Response response) {
         Player player = gameController.getPlayerWithMutex(request.params(":gameId"));
@@ -99,6 +112,7 @@ public class GameService {
         return player;
     }
 
+
     private Object getPlayersFromGame(Request request, Response response) {
         PlayerCollection playerCollection = gameController.getPlayersFromGame(request.params(":gameId"));
 
@@ -107,6 +121,7 @@ public class GameService {
         response.type(APPLICATION_JSON);
         return playerCollection;
     }
+
 
     private Object getGame(Request request, Response response) {
         Game game = gameController.getGame(request.params(":gameId"));
@@ -117,15 +132,18 @@ public class GameService {
         return game;
     }
 
+
     private Object isPlayerReady(Request request, Response response) {
         Boolean status = gameController.isPlayerReady(request.params(":gameId"), request.params(":playerId"));
         return status;
     }
 
+
     private Object removePlayerFromGame(Request request, Response response) {
         gameController.removePlayerFromGame(request.params(":gameId"), request.params(":playerId"));
         return null;
     }
+
 
     private Object getPlayerFromGame(Request request, Response response) {
         Player player = gameController.getPlayerFromGame(request.params(":gameId"), request.params(":playerId"));
@@ -136,12 +154,15 @@ public class GameService {
         return player;
     }
 
+
     private Object togglePlayerReady(Request request, Response response) {
         gameController.togglePlayerReady(request.params(":gameId"), request.params(":playerId"));
         return null;
     }
 
+
     private Object addPlayerToGame(Request request, Response response) {
+        log.fine("adding player " + request.params(":playerId") + " to game " + request.params(":gameId"));
         Boolean success = gameController.addPlayerToGame(
                 request.params(":gameId"),
                 request.params(":playerId"),
@@ -155,9 +176,13 @@ public class GameService {
         return null;
     }
 
+
     private Object createNewGame(Request request, Response response) {
+        log.fine("creating new game");
 
         Game game = gameController.createNewGame();
+
+        log.fine("game " + game.getGameid() + " created");
 
         response.status(200);
         response.type(APPLICATION_JSON);
@@ -166,7 +191,7 @@ public class GameService {
 
 
     private Object getAllGames(Request request, Response response) {
-
+        log.fine("getting all games");
         response.status(200);
         response.type(APPLICATION_JSON);
         return gameController.getAll();
@@ -175,7 +200,12 @@ public class GameService {
 
     private Object root(Request request, Response response) {
 
-        return "The method you have called ('" + request.pathInfo() + "') is currently not implemented.";
+        String name = request.queryParams("name");
+        String message = (name == null || name.isEmpty()) ?
+                "Hello Buddy! I am the GameService, who are you?" :
+                "Hello " + name + "! I am the GameService. Nice to meet you!";
+
+        return message;
     }
 
 
