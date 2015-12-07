@@ -55,4 +55,9 @@ public class Player {
 
         return position;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

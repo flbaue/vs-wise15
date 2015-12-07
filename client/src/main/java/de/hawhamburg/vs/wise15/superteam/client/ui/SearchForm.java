@@ -4,6 +4,8 @@ import de.hawhamburg.vs.wise15.superteam.client.Client;
 import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.api.PlayersAPI;
 import de.hawhamburg.vs.wise15.superteam.client.model.*;
+import de.hawhamburg.vs.wise15.superteam.client.worker.FetchGamesWorker;
+import de.hawhamburg.vs.wise15.superteam.client.worker.FetchPlayersWorker;
 import retrofit.Response;
 import retrofit.Retrofit;
 
@@ -20,14 +22,12 @@ public class SearchForm {
 
     private JPanel panel;
     private JList<Game> gameList;
-    private JList playerList;
+    private JList<Player> playerList;
     private JButton backButton;
     private JTextField playerNameTxt;
     private JButton enterGameButton;
 
-    private FetchGamesWorker fetchGamesWorker;
-    private FetchPlayersWorker fetchPlayersWorkerWorker;
-
+    private Player player;
 
     public SearchForm(Client client, Retrofit retrofit) {
 
@@ -37,20 +37,28 @@ public class SearchForm {
         refresh();
 
         ListSelectionModel selectionModel = gameList.getSelectionModel();
-        selectionModel.addListSelectionListener(e -> {
-            fetchPlayersWorkerWorker = new FetchPlayersWorker();
-            fetchPlayersWorkerWorker.execute();
+        selectionModel.addListSelectionListener(event -> {
+            Game selectedGame = gameList.getSelectedValue();
+            if (selectedGame != null) {
+                FetchPlayersWorker fetchPlayersWorkerWorker = new FetchPlayersWorker(
+                        gamesAPI,
+                        selectedGame,
+                        this::playersReceived);
+
+                fetchPlayersWorkerWorker.execute();
+            } else {
+                playerList.setModel(new DefaultListModel<>());
+            }
         });
 
         backButton.addActionListener(e -> client.openStartForm());
         enterGameButton.addActionListener(e -> {
             Game game = gameList.getSelectedValue();
             if (joinPlayer(game)) {
-                client.openLobbyForm(game);
+                client.openLobbyForm(game, player);
             }
         });
     }
-
 
     public void refresh() {
 
@@ -82,7 +90,9 @@ public class SearchForm {
 //            return false;
 //        }
 
-        player = new Player("1337", playerNameTxt.getText(), "", new Place(""), 42);
+        String id = String.valueOf(Math.round(Math.random() * 1000));
+        player = new Player(id, playerNameTxt.getText(), "", new Place(""), 42);
+
 
         try {
             Response<Void> joinResponse = gamesAPI.joinPlayer(
@@ -92,6 +102,7 @@ public class SearchForm {
                     player.getUri()).execute();
 
             if (joinResponse.isSuccess()) {
+                this.player = player;
                 return true;
             } else {
                 errorGameNotJoined(new IOException(joinResponse.message()));
@@ -106,8 +117,30 @@ public class SearchForm {
 
     private void fetchGames() {
 
-        fetchGamesWorker = new FetchGamesWorker();
+        FetchGamesWorker fetchGamesWorker = new FetchGamesWorker(gamesAPI, this::gamesReceived);
         fetchGamesWorker.execute();
+    }
+
+
+    private void gamesReceived(GameCollection gameCollection, Exception exception) {
+        if (gameCollection == null) {
+            errorFetchingGames(exception);
+            return;
+        }
+        DefaultListModel<Game> gameListModel = new DefaultListModel<>();
+        gameCollection.getGames().forEach(gameListModel::addElement);
+        gameList.setModel(gameListModel);
+    }
+
+
+    private void playersReceived(PlayerCollection playerCollection, Exception exception) {
+        if (playerCollection == null) {
+            errorFetchingGameDetails(exception);
+            return;
+        }
+        DefaultListModel<Player> playersListModel = new DefaultListModel<>();
+        playerCollection.getPlayers().forEach(playersListModel::addElement);
+        playerList.setModel(playersListModel);
     }
 
 
@@ -138,82 +171,4 @@ public class SearchForm {
         //TODO
     }
 
-
-    private class FetchGamesWorker extends SwingWorker<Void, Void> {
-
-        private GameCollection games;
-        private Exception e;
-
-
-        @Override
-        protected Void doInBackground() {
-
-            try {
-                Response<GameCollection> gamesResponse = gamesAPI.all().execute();
-
-                if (gamesResponse.isSuccess()) {
-                    games = gamesResponse.body();
-                }
-            } catch (Exception e) {
-                this.e = e;
-            }
-            return null;
-        }
-
-
-        @Override
-        protected void done() {
-
-            DefaultListModel<Game> gameListModel = new DefaultListModel<>();
-            if (games != null) {
-                games.getGames().forEach(gameListModel::addElement);
-            } else {
-                errorFetchingGames(e);
-            }
-            gameList.setModel(gameListModel);
-        }
-    }
-
-
-    private class FetchPlayersWorker extends SwingWorker<Void, Void> {
-
-        private Game game;
-        private Exception e;
-
-
-        @Override
-        protected Void doInBackground() {
-
-            try {
-                Game selection = gameList.getSelectedValue();
-                Response<Game> response = gamesAPI.byId(selection.getGameid()).execute();
-
-                if (response.isSuccess()) {
-                    game = response.body();
-                }
-            } catch (Exception e) {
-                this.e = e;
-            }
-            return null;
-        }
-
-
-        @Override
-        protected void done() {
-
-            DefaultListModel<String> playerListModel = new DefaultListModel<>();
-            if (game != null) {
-                PlayerCollection players = game.getPlayers();
-
-                if (players != null && players.getPlayers() != null) {
-                    for (Player player : players.getPlayers()) {
-                        playerListModel.addElement(player.getName());
-                    }
-                }
-            } else {
-                errorFetchingGameDetails(e);
-            }
-            playerList.setModel(playerListModel);
-        }
-    }
 }

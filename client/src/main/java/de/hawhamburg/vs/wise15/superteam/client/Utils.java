@@ -4,11 +4,16 @@ import com.squareup.okhttp.OkHttpClient;
 
 import javax.net.ssl.*;
 import java.security.cert.CertificateException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.*;
 
 /**
  * Created by florian on 16.11.15.
  */
 public class Utils {
+
+    private static final String LOG_TEMPLATE = "{TIME} - {MESSAGE}";
 
     public static OkHttpClient getUnsafeOkHttpClient() {
 
@@ -56,5 +61,25 @@ public class Utils {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Logger getLogger(String name) {
+        Logger logger = Logger.getLogger(name);
+        Handler handler = new ConsoleHandler();
+        handler.setFormatter(new Formatter() {
+            @Override
+            public String format(LogRecord record) {
+                Date date = new Date(record.getMillis());
+                String msg = record.getMessage();
+                String className = record.getSourceClassName();
+                String methodName = record.getSourceMethodName();
+
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
+                return format.format(date) + " " + className + " " + methodName + msg;
+            }
+        });
+
+        return logger;
     }
 }

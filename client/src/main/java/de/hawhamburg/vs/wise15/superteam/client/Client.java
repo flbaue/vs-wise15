@@ -1,10 +1,8 @@
 package de.hawhamburg.vs.wise15.superteam.client;
 
 import com.squareup.okhttp.OkHttpClient;
-import de.hawhamburg.vs.wise15.superteam.client.api.YellowPagesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
-import de.hawhamburg.vs.wise15.superteam.client.components.ComponentsLocator;
-import de.hawhamburg.vs.wise15.superteam.client.components.ComponentsHolder;
+import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 import de.hawhamburg.vs.wise15.superteam.client.ui.*;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
@@ -22,7 +20,7 @@ public class Client {
     private final CreateForm createForm;
     private final LobbyForm lobbyForm;
     private final GameForm gameForm;
-    private final ComponentsHolder componentsHolder;
+    //private final ComponentsHolder componentsHolder;
     private JFrame frame;
 
 
@@ -35,18 +33,18 @@ public class Client {
                 .client(httpClient)
                 .build();
 
-        componentsHolder = new ComponentsHolder();
-
-        new ComponentsLocator()
-                .holder(componentsHolder)
-                .api(retrofit.create(YellowPagesAPI.class))
-                .httpClient(httpClient)
-                .start();
+//        componentsHolder = new ComponentsHolder();
+//
+//        new ComponentsLocator()
+//                .holder(componentsHolder)
+//                .api(retrofit.create(YellowPagesAPI.class))
+//                .httpClient(httpClient)
+//                .start();
 
         startForm = new StartForm(this);
         searchForm = new SearchForm(this, retrofit);
         createForm = new CreateForm(this, retrofit);
-        lobbyForm = new LobbyForm(this);
+        lobbyForm = new LobbyForm(this, retrofit);
         gameForm = new GameForm();
     }
 
@@ -85,9 +83,11 @@ public class Client {
     }
 
 
-    public void openLobbyForm(Game game) {
+    public void openLobbyForm(Game game, Player player) {
 
         lobbyForm.setGame(game);
+        lobbyForm.setPlayer(player);
+        lobbyForm.refresh();
         changeContentPane(lobbyForm.getPanel());
     }
 
