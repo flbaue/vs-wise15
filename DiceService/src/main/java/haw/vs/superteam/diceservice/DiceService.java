@@ -1,9 +1,14 @@
 package haw.vs.superteam.diceservice;
 
 import com.google.gson.Gson;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.RequestBody;
 import spark.Request;
 import spark.Response;
 
+import java.io.IOException;
 import java.util.Random;
 
 import static spark.Spark.get;
@@ -24,10 +29,39 @@ public class DiceService {
 
         get("/", this::root);
         get("/dice", this::rollDice);
+
+        registerService();
+    }
+
+    private void registerService() {
+        OkHttpClient client = Utils.getUnsafeOkHttpClient();
+
+        RequestBody body = RequestBody.create(MediaType.parse(
+                "application/json"),
+                "{" +
+                        "\"name\": \"dice\", " +
+                        "\"description\": \"DiceService of team superteam\", " +
+                        "\"service\": \"dice\", " +
+                        "\"uri\": \"http://vs-docker.informatik.haw-hamburg.de:14970/dice\"" +
+                        "}");
+
+        com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
+                .post(body)
+                .url("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
+                .build();
+
+        try {
+            com.squareup.okhttp.Response response = client.newCall(request).execute();
+            if(response.isSuccessful()) {
+                System.err.print("DiceService is registered");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Object root(Request request, Response response) throws Exception {
-        return "It's Alive!";
+        return "DiceService of team superteam";
     }
 
     private Object rollDice(Request request, Response response) throws Exception {
