@@ -14,8 +14,8 @@ services = {
 services.each_pair do |service, docker_folder|
   puts "\n## Building #{service}"
 
-  puts "debug: #{service}"
-  puts "debug: #{docker_folder}"
+  #puts "debug: #{service}"
+  #puts "debug: #{docker_folder}"
 
   project_path = "#{repository_root}/#{service}"
   deployment_path = "#{deployment_root}/#{docker_folder}/java"
@@ -23,9 +23,14 @@ services.each_pair do |service, docker_folder|
 
   Dir.chdir project_path
   result = `./gradlew clean fatJar`
-  puts result
+  if !result.include?('BUILD SUCCESSFUL')
+    puts "## Building #{service} Failed"
+    exit
+  else
+    puts "## Building #{service} Succeeded"
+  end
 
-  puts "\n## Deploying #{service}"
+  puts "## Deploying #{service}"
   source_path = "#{project_path}/build/libs/#{service}-all-1.0.jar"
   dest_path = "#{deployment_root}/#{deployment_path}"
 
@@ -35,4 +40,5 @@ services.each_pair do |service, docker_folder|
   FileUtils.cp(source_path, "#{dest_path}/vsp_aaz532.jar")
 
   puts "## #{service} Done."
+
 end
