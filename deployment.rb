@@ -36,9 +36,3 @@ services.each_pair do |service, docker_folder|
 
   puts "## #{service} Done."
 end
-
-# deploy DiceService
-
-
-
-# deploy GamesService
