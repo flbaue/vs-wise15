@@ -29,6 +29,7 @@ services.each_pair do |service, docker_folder|
   Dir.chdir project_path
   result = `./gradlew clean fatJar`
   if !result.include?('BUILD SUCCESSFUL')
+    puts result
     puts "## Building #{service} Failed"
     exit
   else
