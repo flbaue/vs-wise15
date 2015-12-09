@@ -1,6 +1,9 @@
 package haw.vs.superteam.gamesservice;
 
 import com.google.gson.Gson;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.RequestBody;
 import haw.vs.superteam.gamesservice.model.Game;
 import haw.vs.superteam.gamesservice.model.MutexStatus;
 import haw.vs.superteam.gamesservice.model.Player;
@@ -9,6 +12,8 @@ import spark.Request;
 import spark.Response;
 import spark.ResponseTransformer;
 
+import java.io.IOException;
+import java.net.InetAddress;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,6 +68,40 @@ public class GameService {
         get("/games/:gameId/players/turn", this::getPlayerWithMutex, jsonTransformer);
         put("/games/:gameId/players/turn", this::setMutext, jsonTransformer);
         delete("/games/:gameId/players/turn", this::removeMutex, jsonTransformer);
+
+        registerService();
+    }
+
+    private void registerService() {
+        //https://vs-docker.informatik.haw-hamburg.de/cnt/172.17.0.38/4567/dice
+        try {
+            String ip = InetAddress.getLocalHost().getHostAddress();
+
+            String uri = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567/games";
+            OkHttpClient client = Utils.getUnsafeOkHttpClient();
+
+            RequestBody body = RequestBody.create(MediaType.parse(
+                    "application/json"),
+                    "{" +
+                            "\"name\": \"SuperGames\", " +
+                            "\"description\": \"GamesService of team superteam\", " +
+                            "\"service\": \"games\", " +
+                            "\"uri\": \"" + uri + "\"" +
+                            "}");
+
+            com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
+                    .post(body)
+                    .url("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
+                    .build();
+
+
+            com.squareup.okhttp.Response response = client.newCall(request).execute();
+            if (response.isSuccessful()) {
+                System.err.print("GamesService is registered");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
