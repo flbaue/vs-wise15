@@ -77,7 +77,7 @@ public class GameService {
         try {
             String ip = InetAddress.getLocalHost().getHostAddress();
 
-            String uri = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567/games";
+            String uri = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
             OkHttpClient client = Utils.getUnsafeOkHttpClient();
 
             RequestBody body = RequestBody.create(MediaType.parse(

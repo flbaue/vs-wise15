@@ -34,15 +34,18 @@ public class DiceService {
     }
 
     private void registerService() {
-        OkHttpClient client = Utils.getUnsafeOkHttpClient();
+      try {
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        String uri = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
 
+        OkHttpClient client = Utils.getUnsafeOkHttpClient();
         RequestBody body = RequestBody.create(MediaType.parse(
                 "application/json"),
                 "{" +
                         "\"name\": \"dice\", " +
                         "\"description\": \"DiceService of team superteam\", " +
                         "\"service\": \"dice\", " +
-                        "\"uri\": \"http://vs-docker.informatik.haw-hamburg.de:14970/dice\"" +
+                        "\"uri\": \"" + uri + "\"" +
                         "}");
 
         com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
@@ -50,7 +53,7 @@ public class DiceService {
                 .url("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
                 .build();
 
-        try {
+
             com.squareup.okhttp.Response response = client.newCall(request).execute();
             if(response.isSuccessful()) {
                 System.err.print("DiceService is registered");
