@@ -8,6 +8,7 @@ deployment_root = "/Users/florian/HAW ownCloud/VS/VSP_aaz532"
 repository_root = Dir.pwd
 
 ## Add services with thier name and docker folder
+## Services must have fatJar task in thier build.gradle file!
 services = {
   "DiceService": "docker_0",
   "GamesService": "docker_1"
