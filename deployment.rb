@@ -1,15 +1,19 @@
 #!/usr/bin/env ruby
 require 'fileutils'
 
+# Config
 
+## Change paths according to your setup
 deployment_root = "/Users/florian/HAW ownCloud/VS/VSP_aaz532"
 repository_root = Dir.pwd
 
-
+## Add services with thier name and docker folder
 services = {
   "DiceService": "docker_0",
   "GamesService": "docker_1"
 }
+
+# Config End
 
 services.each_pair do |service, docker_folder|
   puts "\n## Building #{service}"
