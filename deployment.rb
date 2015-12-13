@@ -10,15 +10,19 @@ repository_root = Dir.pwd
 ## Add services with thier name and docker folder
 ## Services must have fatJar task in thier build.gradle file!
 services = {
-  "DiceService": "docker_0",
-  "GamesService": "docker_1",
-  "banks_service": "docker_2",
-  "banks_service": "docker_3"
+  "docker_0": {folder: "DiceService", jar: "DiceService-all-1.0.jar"},
+  "docker_1": {folder: "GamesService", jar: "GamesService-all-1.0.jar"},
+  "docker_2": {folder: "banks_service", jar: "banks-all-1.0-SNAPSHOT.jar"},
+  "docker_3": {folder: "banks_service", jar: "banks-all-1.0-SNAPSHOT.jar"},
+  "docker_4": {folder: "boards_service", jar: "boards_service-all-1.0.jar"}
 }
 
 # Config End
 
-services.each_pair do |service, docker_folder|
+services.each_pair do |docker_folder, properties|
+
+  service = properties[:folder]
+  jar_name = properties[:jar]
   puts "\n## Building #{service}"
 
   #puts "debug: #{service}"
@@ -39,7 +43,7 @@ services.each_pair do |service, docker_folder|
   end
 
   puts "## Deploying #{service}"
-  source_path = "#{project_path}/build/libs/#{service}-all-1.0.jar"
+  source_path = "#{project_path}/build/libs/#{jar_name}"
   dest_path = "#{deployment_root}/#{deployment_path}"
 
   Dir.chdir deployment_root
