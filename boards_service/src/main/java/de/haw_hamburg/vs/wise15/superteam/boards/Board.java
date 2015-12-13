@@ -14,12 +14,72 @@ public class Board {
 	public Board() {
 	}
 	
+	public void initializeBoard() {
+		ArrayList<String> fieldnames = setFieldnames();
+		for(int i = 0; i < fieldnames.size(); i++) {
+			Field field = new Field();
+			Place place = new Place(fieldnames.get(i));
+			field.setPlace(place);
+			fields.add(field);
+		}
+	}
+	
+	private ArrayList<String> setFieldnames() {
+		ArrayList<String> fieldnames = new ArrayList<String>();
+		fieldnames.add("LOS");
+		fieldnames.add("Badstrasse");
+		fieldnames.add("Gemeinschaftsfeld");
+		fieldnames.add("Turmstrasse");
+		fieldnames.add("Einkommensteuer");
+		fieldnames.add("Sued-Bahnhof");
+		fieldnames.add("Chausseestrasse");
+		fieldnames.add("Ereignis-Feld");
+		fieldnames.add("Elisenstrasse");
+		fieldnames.add("Poststrasse");
+		fieldnames.add("Gefaegnis");
+		fieldnames.add("Seestrasse");
+		fieldnames.add("Elektrizitaetswerk");
+		fieldnames.add("Hafenstrasse");
+		fieldnames.add("Neue Strasse");
+		fieldnames.add("West-Bahnhof");
+		fieldnames.add("Muenchnerstrasse");
+		fieldnames.add("Gemeinschaftsfeld");
+		fieldnames.add("Wienerstrasse");
+		fieldnames.add("Berlinerstrasse");
+		fieldnames.add("Frei parken");
+		fieldnames.add("Theaterstrasse");
+		fieldnames.add("Ereignis-Feld");
+		fieldnames.add("Museumstrasse");
+		fieldnames.add("Opernplatz");
+		fieldnames.add("Nord-Bahnhof");
+		fieldnames.add("Lessingstrasse");
+		fieldnames.add("Schillerstrasse");
+		fieldnames.add("Wasserwerk");
+		fieldnames.add("Goethestrasse");
+		fieldnames.add("Gehen sie in das Gefaegnis");
+		fieldnames.add("Rathausplatz");
+		fieldnames.add("Hauptstrasse");
+		fieldnames.add("Gemeinschaftsfeld");
+		fieldnames.add("Bahnhofstrasse");
+		fieldnames.add("Hauptbahnhof");
+		fieldnames.add("Eregnisfeld");
+		fieldnames.add("Zusatzsteuer");
+		fieldnames.add("Schlossallee");
+		return fieldnames;
+	}
+	
 	public void setGames(ArrayList<Game> games) {
 		this.games = games;
 	}
 	
 	public ArrayList<Game> getGames() {
 		return games;
+	}
+	
+	public void addGame(Game game) {
+		if(!games.contains(game)){
+			games.add(game);	
+		}
 	}
 	
 	public void setField(ArrayList<Field> fields) {

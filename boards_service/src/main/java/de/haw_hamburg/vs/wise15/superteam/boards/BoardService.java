@@ -10,9 +10,22 @@ import spark.Response;
 
 import static spark.Spark.*;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.net.ssl.SSLContext;
+
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 /**
  * Created by masha on 28.11.15.
  */
@@ -89,12 +102,12 @@ public class BoardService {
 	
 	private Object putBoardForGame(Request request, Response response) {
 		String gameid = request.params(":gameid");
-		String boardJson = request.body();
-		Board board = gson.fromJson(boardJson, Board.class);
-		if(board == null){
-			board = new Board();
-		}
+		String gameJson = request.body();
+		Game game = gson.fromJson(gameJson, Game.class);
+		Board board = new Board();
+		board.initializeBoard();
 		boards.put(gameid, board);
+		board.addGame(game);
 		
 		/*createBroker(gameid);
 		for(Map.Entry<String, Board> entry : boards.entrySet()) {
@@ -140,6 +153,7 @@ public class BoardService {
 		}
 		player.setPlayerId(playerid);
 		board.addPlayer(player);
+		board.changePosition(player, player.getPosition());
 		return gson.toJson(player);
 	}
 	
@@ -201,15 +215,11 @@ public class BoardService {
 	
 	private Object getPlace(Request request, Response response) {
 		String gameid =request.params(":gameid");
-		String placename = request.params(":place");
+		int placenumber = Integer.parseInt(request.params(":place"));
 		board = boards.get(gameid);
-		Place place = null;
 		ArrayList<Field> fields = board.getFields();
-		for(Field f : fields) {
-			if(f.getPlace().getName().equals(placename)) {
-				place = f.getPlace();
-			}
-		}
+		Place place = fields.get(placenumber).getPlace();
+		
 		response.status(200);
 		return gson.toJson(place);
 	}
@@ -223,7 +233,7 @@ public class BoardService {
 			place = new Place("toller platz");
 		}
 		
-		registerProperties(gameid, place.getPlaceid()); //TODO
+		//registerProperties(gameid, place.getPlaceid()); //TODO
 		
 		board = boards.get(gameid);
 		ArrayList<Field> fields = board.getFields();
@@ -275,7 +285,46 @@ public class BoardService {
 	}
 	
 	private void registreService() {
-		
+		try{
+			String ip = InetAddress.getLocalHost().getHostAddress();
+			String uri = "https://vs-docker.informatik.haw-hamburg.de/cnt/"+ ip +"/4567";
+			String body = "{"
+				  +"\"name\": \"SuperTeamBoardsService\","
+				  +"\"description\": \"Superteams Boardservice\","
+				  +"\"service\": \"boards\","
+				  +"\"uri\": \""+ uri +"\""
+				+"}";
+			
+			System.out.println(body);
+			SSLContext sslcontext;
+				sslcontext = SSLContexts.custom()
+		   	      .loadTrustMaterial(null, new TrustSelfSignedStrategy())
+			      .build();
+			
+	
+			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
+			CloseableHttpClient httpclient = HttpClients.custom()
+	                         .setSSLSocketFactory(sslsf)
+	                         .build();
+			Unirest.setHttpClient(httpclient);
+			
+			HttpResponse<String> jsonResponse = Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
+			        .header("Content-Type", "application/json")
+			        .body(body)
+			        .asString();
+			System.out.println(jsonResponse.getStatus());
+			System.out.println(jsonResponse.getStatusText());
+		} catch (UnirestException e) {
+			e.printStackTrace();
+		} catch (IOException e){
+			e.printStackTrace();
+		} catch (KeyManagementException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
+		}
 	}
 }
 
