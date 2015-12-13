@@ -5,6 +5,8 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
 import spark.Request;
 import spark.Response;
 
@@ -16,10 +18,12 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
+import javax.print.attribute.ResolutionSyntax;
 
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
@@ -41,7 +45,7 @@ public class BoardService {
     
     public BoardService() {
     	
-    	registreService();
+    	//registreService();
     }
 
     private void run() {
@@ -61,7 +65,7 @@ public class BoardService {
         delete("/boards/:gameid", this::deleteBoardForGame);
         
         //returns a list of all player positions
-        get("/boards/:gameid/players", this::getPlayerPositions);
+        get("/boards/:gameid/players", this::getPlayers);
         
         //places a players
         put("/boards/:gameid/players/:playerid", this::setPlayer);
@@ -94,6 +98,12 @@ public class BoardService {
 	
 	private Object getBoardForGame(Request request, Response response) {
 		String gameid = request.params(":gameid");
+		
+		if(!boards.containsKey(gameid)) {
+			response.status(400);
+			return "no board found for game with id " + gameid;
+		}
+		
 		board = boards.get(gameid);
 		String result = gson.toJson(board);
 		response.status(200);
@@ -104,39 +114,51 @@ public class BoardService {
 		String gameid = request.params(":gameid");
 		String gameJson = request.body();
 		Game game = gson.fromJson(gameJson, Game.class);
+		
+		/*if(game == null) {
+			response.status(400);
+			return "bad request";
+		}*/
+		
 		Board board = new Board();
 		board.initializeBoard();
 		boards.put(gameid, board);
 		board.addGame(game);
 		
-		/*createBroker(gameid);
+		//Erstelle Broker
+		createBroker(gameid);
+		
+		//Registriere alle verfügbaren Grundstücke beim Broker
 		for(Map.Entry<String, Board> entry : boards.entrySet()) {
-			
-			for(Field field : entry.getValue().getFields()) {
-				registerProperties(entry.getKey(), field.getPlace().getPlaceid()); //TODO
+			for(int i = 0; i < entry.getValue().getFields().size(); i++) {
+				registerProperties(entry.getKey(), i);
 			}
 			
-		}*/
-		
+		}
 		return "";
 	}
 	
 	private Object deleteBoardForGame(Request request, Response response) {
 		String gameid = request.params(":gameid");
+		
+		if(!boards.containsKey(gameid)) {
+			response.status(400);
+			return "no board found for game with id " + gameid;
+		}
+		
 		boards.remove(gameid);
-		return null;
+		return "";
 	}
 	
-	private Object getPlayerPositions(Request request, Response response) {
+	private Object getPlayers(Request request, Response response) {
 		String gameid = request.params(":gameid");
 		board = boards.get(gameid);
 		
-		/*ArrayList<Player> players = new ArrayList<Player>();
-		for(Game game : board.getGames()) {
-			if(game.getGameId().equals(gameid)) {
-				players = game.getPlayerList();
-			}
-		}*/
+		if(board == null) {
+			response.status(400);
+			return "no board found for game with id " + gameid;
+		}
+		
 		String result = gson.toJson(board.getPlayers());
 		response.status(200);
 		return result;
@@ -148,8 +170,14 @@ public class BoardService {
 		String playerJson = request.body();
 		Player player = gson.fromJson(playerJson, Player.class);
 		board = boards.get(gameid);
-		if(player == null) {
-			player = new Player(playerid, "", "", null, 0);
+		
+		if(board == null) {
+			response.status(400);
+			return "no board found for game with id " + gameid;
+		}else if(player == null) {
+			//player = new Player(playerid, "", "", null, 0);
+			response.status(400);
+			return "bad request";
 		}
 		player.setPlayerId(playerid);
 		board.addPlayer(player);
@@ -161,7 +189,15 @@ public class BoardService {
 		String gameid = request.params(":gameid");
 		String playerid = request.params("playerid");
 		board = boards.get(gameid);
-		board.removePlayer(playerid);
+		ArrayList<Player> players = board.getPlayers();
+		
+		if(board == null) {
+			response.status(400);
+			return "no board found for game with id " + gameid;
+		}else if(board.removePlayer(playerid) == null) {
+			response.status(400);
+			return "no player found with id " + playerid;
+		}
 		return "";
 	}
 	
@@ -171,11 +207,21 @@ public class BoardService {
 		board  = boards.get(gameid);
 		ArrayList<Player>players = board.getPlayers();
 		Player player = null;
+		
 		for(Player p : players) {
 			if(p.getPlayerId().equals(playerid)) {
 				player = p;
 			}
 		}
+		
+		if(player == null) {
+			response.status(400);
+			return "no player found with id " + playerid;
+		}else if(board == null) {
+			response.status(400);
+			return "no board found for game with id " + gameid;
+		}
+		
 		response.status(200);
 		return gson.toJson(player);
 	}
@@ -184,25 +230,37 @@ public class BoardService {
 		String gameid = request.params(":gameid");
 		String playerid = request.params(":playerid");
 		Throw playerThrow = gson.fromJson(request.body(), Throw.class);
-		//TODO gameid not found
 		board = boards.get(gameid);
 		Player player = board.getPlayer(playerid);
 		
 		if(playerThrow == null) {
-			playerThrow = new Throw();
+			response.status(400);
+			return "bad request";
+		}else if(player == null) {
+			response.status(400);
+			return "no player found with id " + playerid;
+		}else if(board == null) {
+			response.status(400);
+			return "no board found for game with id " + gameid;
 		}
 		
 		int rolledNumber = playerThrow.getRoll1().getNumber() + playerThrow.getRoll2().getNumber();
 		
 		board.changePosition(player, player.getPosition() + rolledNumber);
 		
-		//registerVisitor(gameid, player.getPlace().getPlaceid(), playerid);
+		registerVisitor(gameid, board.getPlayer(playerid).getPosition(), playerid);
 		
 		return gson.toJson(new BoardState(player, board));
 	}
 	
 	private Object getAllPlaces(Request request, Response response) {
-		String gameid =request.params(":gameid");
+		String gameid = request.params(":gameid");
+		
+		if(boards.containsKey(gameid)) {
+			response.status(400);
+			return "no board found for game with id " + gameid;
+		}
+		
 		board = boards.get(gameid);
 		ArrayList<Field> fields = board.getFields();
 		ArrayList<Place> places = new ArrayList<Place>();
@@ -214,11 +272,22 @@ public class BoardService {
 	}
 	
 	private Object getPlace(Request request, Response response) {
-		String gameid =request.params(":gameid");
+		String gameid = request.params(":gameid");
 		int placenumber = Integer.parseInt(request.params(":place"));
+		
+		if(!boards.containsKey(gameid)) {
+			response.status(400);
+			return "no board foundfor game with id " + gameid;
+		}
+		
 		board = boards.get(gameid);
 		ArrayList<Field> fields = board.getFields();
 		Place place = fields.get(placenumber).getPlace();
+		
+		if(place == null) {
+			response.status(400);
+			return "no place found with id " + placenumber;
+		}
 		
 		response.status(200);
 		return gson.toJson(place);
@@ -228,12 +297,15 @@ public class BoardService {
 		String gameid = request.params(":gameid");
 		int placeposition = Integer.parseInt(request.params(":place"));
 		Place place = gson.fromJson(request.body(), Place.class);
-		
 		if(place == null) {
-			place = new Place("toller platz");
+			response.status(400);
+			return "bad request";
+		}else if(!boards.containsKey(gameid)) {
+			response.status(400);
+			return "no board found for game with id " + gameid;
 		}
 		
-		//registerProperties(gameid, place.getPlaceid()); //TODO
+		registerProperties(gameid, placeposition);
 		
 		board = boards.get(gameid);
 		ArrayList<Field> fields = board.getFields();
@@ -253,32 +325,29 @@ public class BoardService {
 					.routeParam("gameid", gameid)
 					.asJson();
 		} catch (UnirestException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
 	}
 	
-	private void registerProperties(String gameid, String placeid) {
+	private void registerProperties(String gameid, int placeid) {
 		/*try {
 			HttpResponse<JsonNode> jsonResponse = Unirest.put("https://vs-docker.informatik.haw-hamburg.de:port/brokers/{gameid}/places/{placeid}")
 					.routeParam("gameid", gameid)
-					.routeParam("placeid", placeid)
+					.routeParam("placeid", String.valueOf(placeid))
 					.asJson();
 		} catch (UnirestException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
 	}
 	
-	private void registerVisitor(String gameid, String placeid, String playerid)  {
+	private void registerVisitor(String gameid, int placeid, String playerid)  {
 		/*try {
 			HttpResponse<JsonNode> jsonResponse = Unirest.post("https://vs-docker.informatik.haw-hamburg.de:port/brokers/{gameid}/places/{placeid}/visit/{placerid}")
 					.routeParam("gameid", gameid)
-					.routeParam("placeid", placeid)
+					.routeParam("placeid", String.valueOf(placeid))
 					.routeParam("playerid", playerid)
 					.asJson();
 		} catch (UnirestException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
 		

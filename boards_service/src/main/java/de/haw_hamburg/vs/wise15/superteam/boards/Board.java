@@ -109,13 +109,15 @@ public class Board {
 		
 	}
 	
-	public void removePlayer(String playerid) {
+	public Player removePlayer(String playerid) {
 		ArrayList<Player> copieList = new ArrayList<>(players);
 		for(Player player : copieList) {
 			if(player.getPlayerId().equals(playerid)) {
-				players.remove(player);	
+				players.remove(player);
+				return player;
 			}
 		}
+		return null;
 	}
 	
 	public ArrayList<Player> getPlayers() {
