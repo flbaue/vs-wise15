@@ -1,6 +1,10 @@
 package de.haw_hamburg.vs.wise15.superteam.boards;
 
 import com.google.gson.Gson;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import spark.Request;
 import spark.Response;
 
@@ -21,6 +25,11 @@ public class BoardService {
     public static void main(String[] args) {
         new BoardService().run();
     }
+    
+    public BoardService() {
+    	
+    	registreService();
+    }
 
     private void run() {
         System.out.println("BoardService is starting");
@@ -31,8 +40,9 @@ public class BoardService {
         //gets the board belonging to the game
         get("/boards/:gameid", this::getBoardForGame);
         
-        //makes shure there is a board for the gameid
+        //makes sure there is a board for the gameid
         put("/boards/:gameid", this::putBoardForGame);
+        
         
         //deletes the board to the game, effectivly ending the game
         delete("/boards/:gameid", this::deleteBoardForGame);
@@ -64,11 +74,7 @@ public class BoardService {
     
 
 	private Object getBoard(Request request, Response respone) {
-		if(board == null) {
-			respone.status(404);
-			return "Board not found";
-		}
-    	String result = gson.toJson(board.getGames());
+    	String result = gson.toJson(boards);
     	respone.status(200);
 		return result;
     }
@@ -83,8 +89,23 @@ public class BoardService {
 	
 	private Object putBoardForGame(Request request, Response response) {
 		String gameid = request.params(":gameid");
-		boards.put(gameid, new Board());
-		return null;
+		String boardJson = request.body();
+		Board board = gson.fromJson(boardJson, Board.class);
+		if(board == null){
+			board = new Board();
+		}
+		boards.put(gameid, board);
+		
+		/*createBroker(gameid);
+		for(Map.Entry<String, Board> entry : boards.entrySet()) {
+			
+			for(Field field : entry.getValue().getFields()) {
+				registerProperties(entry.getKey(), field.getPlace().getPlaceid()); //TODO
+			}
+			
+		}*/
+		
+		return "";
 	}
 	
 	private Object deleteBoardForGame(Request request, Response response) {
@@ -96,13 +117,14 @@ public class BoardService {
 	private Object getPlayerPositions(Request request, Response response) {
 		String gameid = request.params(":gameid");
 		board = boards.get(gameid);
-		ArrayList<Player> players = new ArrayList<Player>();
+		
+		/*ArrayList<Player> players = new ArrayList<Player>();
 		for(Game game : board.getGames()) {
 			if(game.getGameId().equals(gameid)) {
 				players = game.getPlayerList();
 			}
-		}
-		String result = gson.toJson(players);
+		}*/
+		String result = gson.toJson(board.getPlayers());
 		response.status(200);
 		return result;
 	}
@@ -113,28 +135,20 @@ public class BoardService {
 		String playerJson = request.body();
 		Player player = gson.fromJson(playerJson, Player.class);
 		board = boards.get(gameid);
-		/*for(Game game : board.getGames()) {
-			if(game.getGameId().equals(gameid)) {
-				player = players.get(playerid);
-				board.addPlayer(player);
-			}
-		}*/
+		if(player == null) {
+			player = new Player(playerid, "", "", null, 0);
+		}
 		player.setPlayerId(playerid);
 		board.addPlayer(player);
-		return player;
+		return gson.toJson(player);
 	}
 	
 	private Object removePlayer(Request request, Response response) {
 		String gameid = request.params(":gameid");
 		String playerid = request.params("playerid");
 		board = boards.get(gameid);
-		ArrayList<Player> players = board.getPlayers();
-		for(Player player : players) {
-			if(player.getPlayerId().equals(playerid)) {
-				board.removePlayer(player);
-			}
-		}
-		return null;
+		board.removePlayer(playerid);
+		return "";
 	}
 	
 	private Object getPlayer(Request request, Response response) {
@@ -149,21 +163,28 @@ public class BoardService {
 			}
 		}
 		response.status(200);
-		return player;
+		return gson.toJson(player);
 	}
 	
 	private Object rollDiceForPlayer(Request request, Response response) {
 		String gameid = request.params(":gameid");
 		String playerid = request.params(":playerid");
 		Throw playerThrow = gson.fromJson(request.body(), Throw.class);
-		
+		//TODO gameid not found
 		board = boards.get(gameid);
 		Player player = board.getPlayer(playerid);
+		
+		if(playerThrow == null) {
+			playerThrow = new Throw();
+		}
 		
 		int rolledNumber = playerThrow.getRoll1().getNumber() + playerThrow.getRoll2().getNumber();
 		
 		board.changePosition(player, player.getPosition() + rolledNumber);
-		return new BoardState(player, board);
+		
+		//registerVisitor(gameid, player.getPlace().getPlaceid(), playerid);
+		
+		return gson.toJson(new BoardState(player, board));
 	}
 	
 	private Object getAllPlaces(Request request, Response response) {
@@ -175,7 +196,7 @@ public class BoardService {
 			places.add(field.getPlace());
 		}
 		response.status(200);
-		return places;
+		return gson.toJson(places);
 	}
 	
 	private Object getPlace(Request request, Response response) {
@@ -190,16 +211,71 @@ public class BoardService {
 			}
 		}
 		response.status(200);
-		return place;
+		return gson.toJson(place);
 	}
 	
 	private Object setPlace(Request request, Response response) {
 		String gameid = request.params(":gameid");
-		String placename = request.params(":place");
+		int placeposition = Integer.parseInt(request.params(":place"));
 		Place place = gson.fromJson(request.body(), Place.class);
 		
+		if(place == null) {
+			place = new Place("toller platz");
+		}
+		
+		registerProperties(gameid, place.getPlaceid()); //TODO
+		
 		board = boards.get(gameid);
-		return null;
+		ArrayList<Field> fields = board.getFields();
+		if(placeposition < fields.size()) {
+			fields.get(placeposition).setPlace(place);
+		}else{
+			Field field = new Field();
+			field.setPlace(place);
+			fields.add(field);
+		}
+		return "";
+	}
+	
+	private void createBroker(String gameid) {
+		/*try {
+			HttpResponse<JsonNode> jsonResponse = Unirest.put("https://vs-docker.informatik.haw-hamburg.de:port/brokers/{gameid}")
+					.routeParam("gameid", gameid)
+					.asJson();
+		} catch (UnirestException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+	}
+	
+	private void registerProperties(String gameid, String placeid) {
+		/*try {
+			HttpResponse<JsonNode> jsonResponse = Unirest.put("https://vs-docker.informatik.haw-hamburg.de:port/brokers/{gameid}/places/{placeid}")
+					.routeParam("gameid", gameid)
+					.routeParam("placeid", placeid)
+					.asJson();
+		} catch (UnirestException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+	}
+	
+	private void registerVisitor(String gameid, String placeid, String playerid)  {
+		/*try {
+			HttpResponse<JsonNode> jsonResponse = Unirest.post("https://vs-docker.informatik.haw-hamburg.de:port/brokers/{gameid}/places/{placeid}/visit/{placerid}")
+					.routeParam("gameid", gameid)
+					.routeParam("placeid", placeid)
+					.routeParam("playerid", playerid)
+					.asJson();
+		} catch (UnirestException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+		
+	}
+	
+	private void registreService() {
+		
 	}
 }
 

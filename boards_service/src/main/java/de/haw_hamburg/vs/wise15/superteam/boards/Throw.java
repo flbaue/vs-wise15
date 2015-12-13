@@ -2,8 +2,8 @@ package de.haw_hamburg.vs.wise15.superteam.boards;
 
 public class Throw {
 	
-	private Roll roll1;
-	private Roll roll2;
+	private Roll roll1 = new Roll(0);
+	private Roll roll2 = new Roll(0);
 	
 	public void setRoll1(Roll roll1) {
 		this.roll1 = roll1;
