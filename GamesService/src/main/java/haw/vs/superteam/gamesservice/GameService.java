@@ -1,10 +1,7 @@
 package haw.vs.superteam.gamesservice;
 
 import com.google.gson.Gson;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.RequestBody;
-import haw.vs.superteam.gamesservice.api.BoardsAPI;
+import haw.vs.superteam.gamesservice.api.ServicesAPI;
 import haw.vs.superteam.gamesservice.model.*;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
@@ -37,24 +34,25 @@ public class GameService {
         String ip = InetAddress.getLocalHost().getHostAddress();
         serviceURI = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
 
-        ServiceLocator serviceLocator = new ServiceLocator();
-        Service boardsService = serviceLocator.getBoardsService();
-        String boardsServiceURI = boardsService.getUri();
-
-        Retrofit boardsServiceRetrofit = new Retrofit.Builder()
-                .baseUrl(boardsServiceURI + "/")
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .client(Utils.getUnsafeOkHttpClient())
-                .build();
-
-        BoardsAPI boardsAPI = boardsServiceRetrofit.create(BoardsAPI.class);
+//        ServiceLocator serviceLocator = new ServiceLocator();
+//        Service boardsService = serviceLocator.getBoardsService();
+//        String boardsServiceURI = boardsService.getUri();
+//
+//        Retrofit boardsServiceRetrofit = new Retrofit.Builder()
+//                .baseUrl(boardsServiceURI + "/")
+//                .addConverterFactory(GsonConverterFactory.create(gson))
+//                .client(Utils.getUnsafeOkHttpClient())
+//                .build();
+//
+//        BoardsAPI boardsAPI = boardsServiceRetrofit.create(BoardsAPI.class);
 
         Components components = new Components();
         components.setGame(serviceURI + "/games");
-        components.setBoard(boardsServiceURI);
+//        components.setBoard(boardsServiceURI);
         //TODO set component paths
 
-        gameController = new GameController(components, boardsAPI);
+//        gameController = new GameController(components, boardsAPI);
+        gameController = new GameController(components, null);
     }
 
     public static void main(String[] args) throws IOException {
@@ -67,7 +65,7 @@ public class GameService {
         new GameService().run();
     }
 
-    private void run() {
+    private void run() throws IOException {
 
         JsonTransformer jsonTransformer = new JsonTransformer();
 
@@ -96,34 +94,25 @@ public class GameService {
         registerService();
     }
 
-    private void registerService() {
-        //https://vs-docker.informatik.haw-hamburg.de/cnt/172.17.0.38/4567/dice
-        try {
-            OkHttpClient client = Utils.getUnsafeOkHttpClient();
+    private void registerService() throws IOException {
 
-            RequestBody body = RequestBody.create(MediaType.parse(
-                    "application/json"),
-                    "{" +
-                            "\"name\": \"SuperGames\", " +
-                            "\"description\": \"GamesService of team superteam\", " +
-                            "\"service\": \"games\", " +
-                            "\"uri\": \"" + serviceURI + "\"" +
-                            "}");
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(Utils.getUnsafeOkHttpClient())
+                .build();
 
-            com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
-                    .post(body)
-                    .url("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
-                    .build();
+        ServicesAPI servicesAPI = retrofit.create(ServicesAPI.class);
+        retrofit.Response<Void> response = servicesAPI.registerService(new Service(
+                "SuperTeamGamesService",
+                "Games Service of SuperTeam",
+                "games",
+                serviceURI)).execute();
 
-
-            com.squareup.okhttp.Response response = client.newCall(request).execute();
-            if (response.isSuccessful()) {
-                System.err.print("GamesService is registered");
-            } else {
-                System.err.print("GamesService is not registered");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (response.isSuccess()) {
+            System.out.println("GamesService registration succeeded!");
+        } else {
+            System.out.println("GamesService registration failed!");
         }
     }
 
