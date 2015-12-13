@@ -2,6 +2,7 @@ package haw.vs.superteam.gamesservice;
 
 import haw.vs.superteam.gamesservice.api.BoardsAPI;
 import haw.vs.superteam.gamesservice.model.*;
+import retrofit.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,15 +39,15 @@ public class GameController {
         game.setComponents(components);
         game.setUri(components.getGame() + "/games/" + game.getGameid());
 
-//        try {
-//            Response<Board> response = boardsAPI.createBoard(game.getGameid()).execute();
-//            if (response.isSuccess()) {
-//                game.getComponents().setBoard(components.getBoard());
-//            }
-//        } catch (IOException e) {
-//            games.remove(game);
-//            return null;
-//        }
+        try {
+            Response<Board> response = boardsAPI.createBoard(game.getGameid()).execute();
+            if (response.isSuccess()) {
+                game.getComponents().setBoard(components.getBoard());
+            }
+        } catch (IOException e) {
+            games.remove(game);
+            return null;
+        }
 
         return game;
     }
