@@ -11,7 +11,9 @@ repository_root = Dir.pwd
 ## Services must have fatJar task in thier build.gradle file!
 services = {
   "DiceService": "docker_0",
-  "GamesService": "docker_1"
+  "GamesService": "docker_1",
+  "banks_service": "docker_2",
+  "banks_service": "docker_3"
 }
 
 # Config End
