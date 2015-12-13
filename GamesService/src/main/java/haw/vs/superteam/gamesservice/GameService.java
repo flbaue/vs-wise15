@@ -25,6 +25,7 @@ public class GameService {
 
     private static final String APPLICATION_JSON = "application/json";
     private static final Logger log = Logger.getLogger(GameService.class.getName());
+    private final ServicesAPI servicesAPI;
     private GameController gameController;
     private Gson gson = new Gson();
     private String serviceURI;
@@ -34,7 +35,16 @@ public class GameService {
         String ip = InetAddress.getLocalHost().getHostAddress();
         serviceURI = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
 
-//        ServiceLocator serviceLocator = new ServiceLocator();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(Utils.getUnsafeOkHttpClient())
+                .build();
+
+        servicesAPI = retrofit.create(ServicesAPI.class);
+
+
+//        ServiceLocator serviceLocator = new ServiceLocator(servicesAPI);
 //        Service boardsService = serviceLocator.getBoardsService();
 //        String boardsServiceURI = boardsService.getUri();
 //
@@ -95,14 +105,6 @@ public class GameService {
     }
 
     private void registerService() throws IOException {
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .client(Utils.getUnsafeOkHttpClient())
-                .build();
-
-        ServicesAPI servicesAPI = retrofit.create(ServicesAPI.class);
         retrofit.Response<Void> response = servicesAPI.registerService(new Service(
                 "SuperTeamGamesService",
                 "Games Service of SuperTeam",
