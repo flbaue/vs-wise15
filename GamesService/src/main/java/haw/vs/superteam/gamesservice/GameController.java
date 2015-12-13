@@ -2,17 +2,21 @@ package haw.vs.superteam.gamesservice;
 
 import haw.vs.superteam.gamesservice.api.BoardsAPI;
 import haw.vs.superteam.gamesservice.model.*;
+import retrofit.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Logger;
 
 /**
  * Created by florian on 18.11.15.
  */
 public class GameController {
+
+    private static Logger logger = Utils.getLogger(GameController.class.getName());
 
     private static AtomicLong gameCounter = new AtomicLong(0);
     private Set<Game> games = new HashSet<>();
@@ -38,15 +42,15 @@ public class GameController {
         game.setComponents(components);
         game.setUri(components.getGame() + "/games/" + game.getGameid());
 
-//        try {
-//            Response<Board> response = boardsAPI.createBoard(game.getGameid()).execute();
-//            if (response.isSuccess()) {
-//                game.getComponents().setBoard(components.getBoard());
-//            }
-//        } catch (IOException e) {
-//            games.remove(game);
-//            return null;
-//        }
+        try {
+            Response<Board> response = boardsAPI.createBoard(game.getGameid()).execute();
+            if (response.isSuccess()) {
+                game.getComponents().setBoard(components.getBoard());
+            }
+        } catch (IOException e) {
+            games.remove(game);
+            return null;
+        }
 
         return game;
     }
@@ -68,7 +72,24 @@ public class GameController {
             return false;
         }
 
-        return game.addNewPlayer(new Player(playerId, playerName, playerURI));
+        Player player = new Player(playerId, playerName, playerURI);
+        boolean playerAdded = game.addNewPlayer(player);
+        if (playerAdded) {
+            try {
+                Response<Void> response = boardsAPI.addPlayer(game.getGameid(), player.getId(), player).execute();
+                if (response.isSuccess()) {
+                    logger.info("Player " + playerId + " added to board");
+                } else {
+                    logger.severe(response.toString());
+                    playerAdded = false;
+                }
+            } catch (IOException e) {
+                logger.severe(e.getMessage());
+                playerAdded = false;
+            }
+        }
+
+        return playerAdded;
     }
 
 

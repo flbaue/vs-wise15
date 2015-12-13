@@ -2,6 +2,7 @@ package haw.vs.superteam.gamesservice;
 
 import haw.vs.superteam.gamesservice.api.ServicesAPI;
 import haw.vs.superteam.gamesservice.model.Service;
+import haw.vs.superteam.gamesservice.model.ServiceCollection;
 import retrofit.Response;
 
 import java.io.IOException;
@@ -19,7 +20,14 @@ public class ServiceLocator {
     }
 
     public Service getBoardsService() throws IOException {
-        Response<Service> response = servicesAPI.getService(Constants.BOARDS_SERVICE_NAME).execute();
-        return response.body();
+        Response<ServiceCollection> serviceCollectionResponse = servicesAPI.getServiceCollection(Constants.BOARDS_SERVICE_NAME).execute();
+        ServiceCollection serviceCollection = serviceCollectionResponse.body();
+        String uri = serviceCollection.getServices().get(serviceCollection.getServices().size() - 1);
+
+        int i = uri.lastIndexOf("/");
+        String id = uri.substring(i);
+
+        Response<Service> serviceResponse = servicesAPI.getServiceById(id).execute();
+        return serviceResponse.body();
     }
 }
