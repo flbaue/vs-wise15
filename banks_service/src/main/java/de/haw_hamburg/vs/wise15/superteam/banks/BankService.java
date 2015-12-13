@@ -1,11 +1,27 @@
 package de.haw_hamburg.vs.wise15.superteam.banks;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import spark.Request;
 import spark.Response;
 
+import javax.net.ssl.SSLContext;
 import java.math.BigDecimal;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,6 +29,7 @@ import static spark.Spark.*;
 
 public class BankService {
 
+    private String ip;
     private Gson gson = new Gson();
     private ArrayList<Bank> bankList = new ArrayList<Bank>();
     private AtomicInteger transferId = new AtomicInteger(0);
@@ -22,6 +39,10 @@ public class BankService {
     }
 
     public void run() {
+        //anmeldung
+        //https://vs-docker.informatik.haw-hamburg.de/ports/8053/services
+        register();
+
         System.out.println("BankService is starting");
 
         //den Status von der Bank
@@ -72,6 +93,45 @@ public class BankService {
 
         //transaktion bestenaetigen
         //post("/banks/:gameid/transfer/:amount/:transferId", this::transBesaetigen);
+    }
+
+    private void register() {
+        try {
+            ip = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        JsonObject json = new JsonObject();
+        json.addProperty("name", "SuperTeamBanksService");
+        json.addProperty("description", "BankService von SuperTeam");
+        json.addProperty("service","banks");
+        json.addProperty("uri","https://vs-docker.informatik.haw-hamburg.de/cnt/"+ ip+"/4567");
+        try {
+            SSLContext sslcontext = null;
+            try {
+                sslcontext = SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (KeyManagementException e) {
+                e.printStackTrace();
+            } catch (KeyStoreException e) {
+                e.printStackTrace();
+            }
+
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
+            CloseableHttpClient httpclient = HttpClients.custom()
+                    .setSSLSocketFactory(sslsf)
+                    .build();
+            Unirest.setHttpClient(httpclient);
+            //sout
+            System.out.println(json.toString());
+            HttpResponse<JsonNode> jsonNodeHttpResponse = Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
+                    .header("Content-Type", "application/json")
+                    .body(json.toString()).asJson();
+            System.out.println(jsonNodeHttpResponse.getStatus());
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
     }
 
     // http://localhost:4567/banks/:gameid/players

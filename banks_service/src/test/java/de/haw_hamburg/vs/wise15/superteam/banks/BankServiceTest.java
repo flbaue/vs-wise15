@@ -8,9 +8,7 @@ import org.junit.Test;
 import spark.Request;
 import spark.Response;
 
-import java.util.ArrayList;
-
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by masha on 28.11.15.
@@ -26,14 +24,14 @@ public class BankServiceTest {
     Response response;
     @Before
     public void setUp() throws Exception {
-        bankService = new BankService();
+       /* bankService = new BankService();
         ArrayList<Player> playerList = new ArrayList<Player>();
         playerList.add(new Player("player1", "name", "uri", new Place("place1"),1));
         game = new Game("game1",playerList,new Component("","","","","","",""));
         //
         request = mock(Request.class);
 
-        response = mock(Response.class);
+        response = mock(Response.class);*/
 
 
 
