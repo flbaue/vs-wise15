@@ -1,5 +1,8 @@
 package de.haw_hamburg.vs.wise15.superteam.banks;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 import java.util.ArrayList;
 
 /**
@@ -7,13 +10,23 @@ import java.util.ArrayList;
  */
 
 public class Game {
+    private Gson gson;
     private String gameId;
     private ArrayList<Player> playerList;
     private Component component;
 
-    public Game(String s, ArrayList<Player> players, Component component) {
+    public Game(String s, ArrayList<String> players, Component component) {
         this.gameId=s;
-        this.playerList=players;
+        Player pl;
+        for(String el:players){
+            try {
+                pl = gson.fromJson(el, Player.class);
+                this.playerList.add(pl);
+            }catch (JsonSyntaxException e){
+
+            }
+
+        }
         this.component=component;
     }
 

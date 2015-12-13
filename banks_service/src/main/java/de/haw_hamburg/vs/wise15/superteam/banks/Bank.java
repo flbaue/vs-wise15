@@ -10,7 +10,6 @@ public class Bank {
     private String bankId;
     private Game game;
     private ArrayList<Transaction> transactionList;
-    private ArrayList<Transaction> transListNichtBestaetigt;
     private ArrayList<Account> accountList;
 
     public ArrayList<Account> getAccountList() {
@@ -22,7 +21,6 @@ public class Bank {
     }
 
     public Bank(Game game){
-        this.transListNichtBestaetigt= new ArrayList<Transaction>();
         this.transactionList= new ArrayList<Transaction>();
         this.accountList = new ArrayList<Account>();
         this.bankId = game.getGameId();
@@ -50,24 +48,12 @@ public class Bank {
 
     }
 
-    public ArrayList<Transaction> getTransListNichtBestaetigt() {
-        return transListNichtBestaetigt;
-    }
-
-    public void setTransListNichtBestaetigt(ArrayList<Transaction> transListNichtBestaetigt) {
-        this.transListNichtBestaetigt = transListNichtBestaetigt;
-    }
-
     public void setTransactionList(ArrayList<Transaction> transactionList) {
         this.transactionList = transactionList;
     }
 
     public void addTransaction(Transaction transaction) {
         this.transactionList.add(transaction);
-    }
-
-    public void addTransNichtBestaetigt(Transaction transaction) {
-        this.transListNichtBestaetigt.add(transaction);
     }
 
     public void addAccount(Account account) {
