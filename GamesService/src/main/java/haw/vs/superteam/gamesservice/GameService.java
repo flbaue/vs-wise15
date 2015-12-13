@@ -4,10 +4,10 @@ import com.google.gson.Gson;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.RequestBody;
-import haw.vs.superteam.gamesservice.model.Game;
-import haw.vs.superteam.gamesservice.model.MutexStatus;
-import haw.vs.superteam.gamesservice.model.Player;
-import haw.vs.superteam.gamesservice.model.PlayerCollection;
+import haw.vs.superteam.gamesservice.api.BoardsAPI;
+import haw.vs.superteam.gamesservice.model.*;
+import retrofit.GsonConverterFactory;
+import retrofit.Retrofit;
 import spark.Request;
 import spark.Response;
 import spark.ResponseTransformer;
@@ -28,11 +28,36 @@ public class GameService {
 
     private static final String APPLICATION_JSON = "application/json";
     private static final Logger log = Logger.getLogger(GameService.class.getName());
-    private GameController gameController = new GameController();
+    private GameController gameController;
     private Gson gson = new Gson();
+    private String serviceURI;
 
+    public GameService() throws IOException {
 
-    public static void main(String[] args) {
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
+
+        ServiceLocator serviceLocator = new ServiceLocator();
+        Service boardsService = serviceLocator.getBoardsService();
+        String boardsServiceURI = boardsService.getUri();
+
+        Retrofit boardsServiceRetrofit = new Retrofit.Builder()
+                .baseUrl(boardsServiceURI + "/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(Utils.getUnsafeOkHttpClient())
+                .build();
+
+        BoardsAPI boardsAPI = boardsServiceRetrofit.create(BoardsAPI.class);
+
+        Components components = new Components();
+        components.setGame(serviceURI + "/games");
+        components.setBoard(boardsServiceURI);
+        //TODO set component paths
+
+        gameController = new GameController(components, boardsAPI);
+    }
+
+    public static void main(String[] args) throws IOException {
 
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter());
@@ -41,7 +66,6 @@ public class GameService {
         log.setLevel(Level.ALL);
         new GameService().run();
     }
-
 
     private void run() {
 
@@ -75,9 +99,6 @@ public class GameService {
     private void registerService() {
         //https://vs-docker.informatik.haw-hamburg.de/cnt/172.17.0.38/4567/dice
         try {
-            String ip = InetAddress.getLocalHost().getHostAddress();
-
-            String uri = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
             OkHttpClient client = Utils.getUnsafeOkHttpClient();
 
             RequestBody body = RequestBody.create(MediaType.parse(
@@ -86,7 +107,7 @@ public class GameService {
                             "\"name\": \"SuperGames\", " +
                             "\"description\": \"GamesService of team superteam\", " +
                             "\"service\": \"games\", " +
-                            "\"uri\": \"" + uri + "\"" +
+                            "\"uri\": \"" + serviceURI + "\"" +
                             "}");
 
             com.squareup.okhttp.Request request = new com.squareup.okhttp.Request.Builder()
@@ -98,6 +119,8 @@ public class GameService {
             com.squareup.okhttp.Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
                 System.err.print("GamesService is registered");
+            } else {
+                System.err.print("GamesService is not registered");
             }
         } catch (IOException e) {
             e.printStackTrace();

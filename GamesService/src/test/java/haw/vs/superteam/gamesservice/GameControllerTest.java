@@ -1,5 +1,7 @@
 package haw.vs.superteam.gamesservice;
 
+import haw.vs.superteam.gamesservice.api.BoardsAPI;
+import haw.vs.superteam.gamesservice.model.Components;
 import haw.vs.superteam.gamesservice.model.Game;
 import haw.vs.superteam.gamesservice.model.MutexStatus;
 import haw.vs.superteam.gamesservice.model.Player;
@@ -8,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
 /**
  * Created by florian on 28.11.15.
@@ -15,10 +18,14 @@ import static org.junit.Assert.*;
 public class GameControllerTest {
 
     GameController controller;
+    private BoardsAPI boardsAPI;
+    private Components components;
 
     @Before
     public void setUp() throws Exception {
-        controller = new GameController();
+        components = new Components();
+        boardsAPI = mock(BoardsAPI.class);
+        controller = new GameController(components, boardsAPI);
     }
 
     @After
