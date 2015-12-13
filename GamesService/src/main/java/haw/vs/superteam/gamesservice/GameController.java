@@ -1,11 +1,9 @@
 package haw.vs.superteam.gamesservice;
 
-import com.google.gson.Gson;
 import haw.vs.superteam.gamesservice.api.BoardsAPI;
 import haw.vs.superteam.gamesservice.model.*;
-import retrofit.GsonConverterFactory;
-import retrofit.Retrofit;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,22 +15,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public class GameController {
 
     private static AtomicLong gameCounter = new AtomicLong(0);
-    private Gson gson = new Gson();
     private Set<Game> games = new HashSet<>();
     private Components components;
     private BoardsAPI boardsAPI;
 
-    public GameController() {
-        components = new Components();
-        //TODO set component paths
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .client(Utils.getUnsafeOkHttpClient())
-                .build();
-
-        boardsAPI = retrofit.create(BoardsAPI.class);
+    public GameController(Components components, BoardsAPI boardsAPI) throws IOException {
+        this.components = components;
+        this.boardsAPI = boardsAPI;
     }
 
     public GameCollection getAll() {
@@ -43,20 +32,22 @@ public class GameController {
 
     public Game createNewGame() {
 
-
         Game game = new Game(String.valueOf(gameCounter.incrementAndGet()));
         games.add(game);
 
         game.setComponents(components);
-        game.setUri("");
-        //TODO set URI?
+        game.setUri(components.getGame() + "/games/" + game.getGameid());
 
 //        try {
 //            Response<Board> response = boardsAPI.createBoard(game.getGameid()).execute();
-//            if(response.isSuccess()) {
-//                game.getComponents().setBoard(boardsAPI.);
+//            if (response.isSuccess()) {
+//                game.getComponents().setBoard(components.getBoard());
 //            }
+//        } catch (IOException e) {
+//            games.remove(game);
+//            return null;
 //        }
+
         return game;
     }
 
@@ -145,7 +136,7 @@ public class GameController {
         game.setMutexPlayer(null);
     }
 
-    public synchronized MutexStatus setMutex(String gameId, Player player) {
+    public MutexStatus setMutex(String gameId, Player player) {
         Game game = getGame(gameId);
         if (game == null) {
             return MutexStatus.FAILED;

@@ -64,4 +64,12 @@ public class Transaction {
     public void setTransferId(String transferId) {
         this.transferId = transferId;
     }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
 }
