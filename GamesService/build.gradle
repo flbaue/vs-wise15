@@ -22,11 +22,11 @@ dependencies {
 //create a single Jar with all dependencies
 task fatJar(type: Jar) {
     manifest {
-        Attributes 'Implementation-Title': 'GameService of team superteam',
+        attributes 'Implementation-Title': 'GamesService of team superteam',
                 'Implementation-Version': version,
                 'Main-Class': 'haw.vs.superteam.gamesservice.GameService'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with Jar
+    with jar
 }

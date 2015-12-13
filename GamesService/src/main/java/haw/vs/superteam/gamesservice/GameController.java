@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import haw.vs.superteam.gamesservice.api.BoardsAPI;
 import haw.vs.superteam.gamesservice.model.*;
 import retrofit.GsonConverterFactory;
-import retrofit.Response;
 import retrofit.Retrofit;
 
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class GameController {
 
     private static AtomicLong gameCounter = new AtomicLong(0);
-    private final Object createGameLock = new Object();
     private Gson gson = new Gson();
     private Set<Game> games = new HashSet<>();
     private Components components;
@@ -53,12 +51,12 @@ public class GameController {
         game.setUri("");
         //TODO set URI?
 
-        try {
-            Response<Board> response = boardsAPI.createBoard(game.getGameid()).execute();
-            if(response.isSuccess()) {
-                game.getComponents().setBoard(boardsAPI.);
-            }
-        }
+//        try {
+//            Response<Board> response = boardsAPI.createBoard(game.getGameid()).execute();
+//            if(response.isSuccess()) {
+//                game.getComponents().setBoard(boardsAPI.);
+//            }
+//        }
         return game;
     }
 
@@ -153,13 +151,15 @@ public class GameController {
             return MutexStatus.FAILED;
         }
 
-        if (game.getMutexPlayer() == null) {
-            game.setMutexPlayer(player);
-            return MutexStatus.SUCCESS;
-        } else if (game.getMutexPlayer().equals(player)) {
-            return MutexStatus.ALREADY_HOLDING;
-        } else {
-            return MutexStatus.FAILED;
+        synchronized (game) {
+            if (game.getMutexPlayer() == null) {
+                game.setMutexPlayer(player);
+                return MutexStatus.SUCCESS;
+            } else if (game.getMutexPlayer().equals(player)) {
+                return MutexStatus.ALREADY_HOLDING;
+            } else {
+                return MutexStatus.FAILED;
+            }
         }
     }
 }
