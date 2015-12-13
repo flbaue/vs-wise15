@@ -6,6 +6,7 @@ package de.haw_hamburg.vs.wise15.superteam.boards;
 public class Place {
 
     private String name;
+    private String placeid; //TODO get unique id
 
     public Place(String name){
         this.name=name;
@@ -18,4 +19,12 @@ public class Place {
     public String getName() {
     	return name;
     }
+
+	public String getPlaceid() {
+		return placeid;
+	}
+
+	public void setPlaceid(String placeid) {
+		this.placeid = placeid;
+	}
 }

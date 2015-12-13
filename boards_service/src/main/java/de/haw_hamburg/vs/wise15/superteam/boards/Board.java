@@ -11,6 +11,9 @@ public class Board {
 	private ArrayList<Game> games = new ArrayList<Game>();
 	private ArrayList<Player> players = new ArrayList<Player>();
 	
+	public Board() {
+	}
+	
 	public void setGames(ArrayList<Game> games) {
 		this.games = games;
 	}
@@ -40,11 +43,19 @@ public class Board {
 	}
 	
 	public void addPlayer(Player player) {
-		players.add(player);
+		if(!players.contains(player)) {
+			players.add(player);
+		}
+		
 	}
 	
-	public void removePlayer(Player player) {
-		players.remove(player);
+	public void removePlayer(String playerid) {
+		ArrayList<Player> copieList = new ArrayList<>(players);
+		for(Player player : copieList) {
+			if(player.getPlayerId().equals(playerid)) {
+				players.remove(player);	
+			}
+		}
 	}
 	
 	public ArrayList<Player> getPlayers() {
@@ -66,7 +77,9 @@ public class Board {
 		
 		int position = newPosition % fields.size();
 		player.setPosition(position);
-		fields.get(position).addPlayer(player);
+		Field field = fields.get(position);
+		field.addPlayer(player);
+		player.setPlace(field.getPlace());
 		
 	}
 

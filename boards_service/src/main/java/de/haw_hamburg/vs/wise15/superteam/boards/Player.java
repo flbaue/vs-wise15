@@ -32,7 +32,7 @@ public class Player {
         this.playerId = playerId;
         this.name = name;
         this.uri = uri;
-        this.place = place;
+        this.setPlace(place);
         this.position = position;
 
 
@@ -53,5 +53,13 @@ public class Player {
     public void setPlayerId(String playerId) {
         this.playerId = playerId;
     }
+
+	public Place getPlace() {
+		return place;
+	}
+
+	public void setPlace(Place place) {
+		this.place = place;
+	}
 
 }

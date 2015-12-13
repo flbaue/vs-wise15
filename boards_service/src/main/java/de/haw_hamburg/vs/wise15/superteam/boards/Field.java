@@ -28,7 +28,8 @@ public class Field {
 	}
 
 	public void removePlayer(String playerid) {
-		for(Player player : players) {
+		ArrayList<Player> copieList = new ArrayList<>(players);
+		for(Player player : copieList) {
 			if(player.getPlayerId().equals(playerid)) {
 				players.remove(player);
 			}
