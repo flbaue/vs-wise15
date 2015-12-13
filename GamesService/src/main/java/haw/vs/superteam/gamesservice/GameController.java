@@ -145,7 +145,7 @@ public class GameController {
         game.setMutexPlayer(null);
     }
 
-    public MutexStatus setMutex(String gameId, Player player) {
+    public synchronized MutexStatus setMutex(String gameId, Player player) {
         Game game = getGame(gameId);
         if (game == null) {
             return MutexStatus.FAILED;
