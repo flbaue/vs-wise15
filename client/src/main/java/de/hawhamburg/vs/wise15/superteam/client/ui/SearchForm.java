@@ -15,7 +15,7 @@ import java.io.IOException;
 /**
  * Created by florian on 16.11.15.
  */
-public class SearchForm {
+public class SearchForm implements LifeCycle{
 
     private final GamesAPI gamesAPI;
     private final PlayersAPI playersAPI;
@@ -29,19 +29,17 @@ public class SearchForm {
 
     private Player player;
 
-    public SearchForm(Client client, Retrofit retrofit) {
+    public SearchForm(Client client, GamesAPI gamesAPI, PlayersAPI playersAPI) {
 
-        gamesAPI = retrofit.create(GamesAPI.class);
-        playersAPI = retrofit.create(PlayersAPI.class);
-
-        refresh();
+        this.gamesAPI = gamesAPI;
+        this.playersAPI = playersAPI;
 
         ListSelectionModel selectionModel = gameList.getSelectionModel();
         selectionModel.addListSelectionListener(event -> {
             Game selectedGame = gameList.getSelectedValue();
             if (selectedGame != null) {
                 FetchPlayersWorker fetchPlayersWorkerWorker = new FetchPlayersWorker(
-                        gamesAPI,
+                        this.gamesAPI,
                         selectedGame,
                         this::playersReceived);
 
@@ -171,4 +169,8 @@ public class SearchForm {
         //TODO
     }
 
+    @Override
+    public void willAppear() {
+        refresh();
+    }
 }

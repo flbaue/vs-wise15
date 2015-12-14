@@ -7,7 +7,7 @@ import javax.swing.*;
 /**
  * Created by florian on 16.11.15.
  */
-public class StartForm {
+public class StartForm implements LifeCycle{
 
     private final Client client;
     private JPanel panel;
@@ -28,5 +28,10 @@ public class StartForm {
     public JPanel getPanel() {
 
         return panel;
+    }
+
+    @Override
+    public void willAppear() {
+
     }
 }

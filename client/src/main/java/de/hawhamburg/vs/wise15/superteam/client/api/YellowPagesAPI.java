@@ -22,6 +22,16 @@ public interface YellowPagesAPI {
     Call<ServiceCollection> servicesOfType(@Path("type") String type);
 
     /**
+     * Gets all service paths of a type.
+     * The paths include the ids to get a {@link Service}.
+     *
+     * @param name of the service
+     * @return {@link ServiceCollection}
+     */
+    @GET("services/of/name/{name}")
+    Call<ServiceCollection> servicesOfName(@Path("name") String name);
+
+    /**
      * Gets the {@link Service}.
      *
      * @param serviceId of the service
