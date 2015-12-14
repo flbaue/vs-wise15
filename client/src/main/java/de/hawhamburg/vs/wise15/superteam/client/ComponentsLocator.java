@@ -20,16 +20,20 @@ public class ComponentsLocator {
         this.yellowPagesAPI = yellowPagesAPI;
     }
 
-    public Service getGamesService() {
-        try {
-            Response<ServiceCollection> collectionResponse = yellowPagesAPI.servicesOfName(Constants.GAMES_SERVICE_NAME).execute();
-            List<String> serviceIds = collectionResponse.body().getServiceIds();
-            String id = serviceIds.get(serviceIds.size() - 1);
-            Response<Service> serviceResponse = yellowPagesAPI.byId(id).execute();
-            return serviceResponse.body();
-        } catch (Exception e) {
-            logger.severe(() -> "Cannot locate GamesService " + e.toString());
-            return null;
+    public Service getGamesService(boolean local) {
+        if (local) {
+            return new Service("GamesService", "games service local", "games", "http://127.0.0.1:4567");
+        } else {
+            try {
+                Response<ServiceCollection> collectionResponse = yellowPagesAPI.servicesOfName(Constants.GAMES_SERVICE_NAME).execute();
+                List<String> serviceIds = collectionResponse.body().getServiceIds();
+                String id = serviceIds.get(serviceIds.size() - 1);
+                Response<Service> serviceResponse = yellowPagesAPI.byId(id).execute();
+                return serviceResponse.body();
+            } catch (Exception e) {
+                logger.severe(() -> "Cannot locate GamesService " + e.toString());
+                return null;
+            }
         }
     }
 

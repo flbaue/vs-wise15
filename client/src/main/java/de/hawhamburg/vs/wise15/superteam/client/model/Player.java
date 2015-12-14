@@ -10,20 +10,21 @@ public class Player {
     private String uri;
     private Place place;
     private int position;
-
+    private boolean ready;
 
     public Player() {
 
     }
 
 
-    public Player(String id, String name, String uri, Place place, int position) {
+    public Player(String id, String name, String uri, Place place, int position, boolean ready) {
 
         this.id = id;
         this.name = name;
         this.uri = uri;
         this.place = place;
         this.position = position;
+        this.ready = ready;
     }
 
 
@@ -56,8 +57,17 @@ public class Player {
         return position;
     }
 
+    public boolean isReady() {
+        return ready;
+    }
+
+    public void setReady(boolean ready) {
+        this.ready = ready;
+    }
+
     @Override
     public String toString() {
-        return name;
+        String r = ready ? "...is ready" : "";
+        return name + r;
     }
 }

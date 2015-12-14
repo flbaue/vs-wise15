@@ -89,7 +89,7 @@ public class SearchForm implements LifeCycle{
 //        }
 
         String id = String.valueOf(Math.round(Math.random() * 1000));
-        player = new Player(id, playerNameTxt.getText(), "", new Place(""), 42);
+        player = new Player(id, playerNameTxt.getText(), "", new Place(""), 42, false);
 
 
         try {

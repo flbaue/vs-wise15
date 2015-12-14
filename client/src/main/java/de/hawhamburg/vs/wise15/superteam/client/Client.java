@@ -27,7 +27,7 @@ public class Client {
     private JFrame frame;
 
 
-    public Client() {
+    public Client(boolean local) {
 
         OkHttpClient httpClient = Utils.getUnsafeOkHttpClient();
         Retrofit serviceRetrofit = new Retrofit.Builder()
@@ -38,7 +38,7 @@ public class Client {
 
         ComponentsLocator componentsLocator = new ComponentsLocator(serviceRetrofit.create(YellowPagesAPI.class));
 
-        Service gamesService = componentsLocator.getGamesService();
+        Service gamesService = componentsLocator.getGamesService(local);
         Retrofit GamesServiceRetrofit = new Retrofit.Builder()
                 .baseUrl(gamesService.getUri() + "/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -63,7 +63,11 @@ public class Client {
 
     public static void main(String[] args) {
 
-        new Client().run();
+        if(args.length > 0) {
+            new Client(true).run();
+        } else {
+            new Client(false).run();
+        }
     }
 
 

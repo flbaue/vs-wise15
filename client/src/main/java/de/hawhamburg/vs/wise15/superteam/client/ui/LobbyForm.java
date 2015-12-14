@@ -8,6 +8,7 @@ import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 import de.hawhamburg.vs.wise15.superteam.client.model.PlayerCollection;
 import de.hawhamburg.vs.wise15.superteam.client.worker.DeletePlayerWorker;
 import de.hawhamburg.vs.wise15.superteam.client.worker.FetchPlayersWorker;
+import de.hawhamburg.vs.wise15.superteam.client.worker.SetPlayerReadyWorker;
 
 import javax.swing.*;
 import java.util.logging.Logger;
@@ -27,6 +28,7 @@ public class LobbyForm implements LifeCycle {
     private Game game;
     private Player player;
     private DeletePlayerWorker deletePlayerWorker;
+    private SetPlayerReadyWorker setPlayerReadyWorker;
 
 
     public LobbyForm(Client client, GamesAPI gamesAPI) {
@@ -39,7 +41,23 @@ public class LobbyForm implements LifeCycle {
             deletePlayerWorker.execute();
         });
 
+        readyButton.addActionListener(e -> {
+            setPlayerReadyWorker = new SetPlayerReadyWorker(gamesAPI, game, player, this::playerReadyCallback);
+            setPlayerReadyWorker.execute();
+        });
+
         timer = new Timer(2000, e -> refresh()); //TODO: game service should send event to player
+
+    }
+
+    private void playerReadyCallback(Boolean playerReady, Exception e) {
+        if(playerReady == false) {
+            showError(e);
+            return;
+        }
+
+        player.setReady(playerReady);
+        refresh();
 
     }
 

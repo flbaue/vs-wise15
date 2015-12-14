@@ -10,7 +10,7 @@ public class Player {
     private String uri;
     private Place place;
     private int position;
-    private transient boolean ready;
+    private boolean ready;
 
     public Player() {
 

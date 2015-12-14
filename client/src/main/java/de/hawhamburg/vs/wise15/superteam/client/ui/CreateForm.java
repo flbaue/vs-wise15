@@ -50,7 +50,7 @@ public class CreateForm implements LifeCycle{
 
         //TODO create player
         String id = String.valueOf(Math.round(Math.random() * 1000));
-        Player player = new Player(id, textField1.getText(), "", new Place(""), 42);
+        Player player = new Player(id, textField1.getText(), "", new Place(""), 42, false);
 
         AddPlayerWorker addPlayerWorker = new AddPlayerWorker(gamesAPI, game, player, this::playerAdded);
         addPlayerWorker.execute();
