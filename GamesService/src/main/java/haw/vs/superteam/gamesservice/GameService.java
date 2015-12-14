@@ -34,7 +34,9 @@ public class GameService {
     public GameService() throws IOException {
 
         String ip = InetAddress.getLocalHost().getHostAddress();
-        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
+//        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
+        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/ports/15321";
+
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
