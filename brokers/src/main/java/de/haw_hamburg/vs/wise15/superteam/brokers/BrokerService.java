@@ -1,10 +1,19 @@
 package de.haw_hamburg.vs.wise15.superteam.brokers;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mashape.unirest.http.Unirest;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import spark.Request;
 import spark.Response;
 
+import javax.net.ssl.SSLContext;
+
+import static org.apache.http.conn.ssl.SSLContexts.custom;
 import static spark.Spark.*;
 
 /**
@@ -15,13 +24,15 @@ public class BrokerService {
     Gson gson = new Gson();
     Broker broker;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         new BrokerService().run();
     }
 
-    private void run() {
+    private void run() throws Exception {
         System.out.println("BrokerService is starting");
+
+        register();
 
         //Gets a broker
         get("/brokers/{gameid}", this::getBroker);
@@ -61,6 +72,25 @@ public class BrokerService {
         //brokers bei fälliger Miete oder Erwerb dies der Bank meldet
 
 
+    }
+
+    private void register() throws Exception{
+
+        JsonObject json = new JsonObject();
+        json.addProperty("name", "SuperTeamBrokersService");
+        json.addProperty("description", "BrokersService von SuperTeam");
+        json.addProperty("service", "brokers");
+        json.addProperty("uri", "https://vs-docker.informatik.haw-hamburg.de/ports/15326");
+        SSLContext sslcontext = null;
+        sslcontext = custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setSSLSocketFactory(sslsf)
+                .build();
+        Unirest.setHttpClient(httpclient);
+        Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
+                .header("Content-Type", "application/json")
+                .body(json.toString()).asJson();
     }
 
     private Object deletePlace(Request request, Response response) {
