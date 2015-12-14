@@ -14,7 +14,8 @@ services = {
   "docker_1": {folder: "GamesService", jar: "GamesService-all-1.0.jar"},
   "docker_2": {folder: "banks_service", jar: "banks-all-1.0-SNAPSHOT.jar"},
   "docker_3": {folder: "banks_service", jar: "banks-all-1.0-SNAPSHOT.jar"},
-  "docker_4": {folder: "boards_service", jar: "boards_service-all-1.0.jar"}
+  "docker_4": {folder: "boards_service", jar: "boards_service-all-1.0.jar"},
+  "docker_5": {folder: "events_service", jar: "events_service-all-1.0.jar"}
 }
 
 # Config End
