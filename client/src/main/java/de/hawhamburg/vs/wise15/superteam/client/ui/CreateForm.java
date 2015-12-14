@@ -14,7 +14,7 @@ import javax.swing.*;
 /**
  * Created by florian on 16.11.15.
  */
-public class CreateForm {
+public class CreateForm implements LifeCycle{
     private final Client client;
     private final GamesAPI gamesAPI;
     private JPanel panel;
@@ -23,9 +23,9 @@ public class CreateForm {
     private JButton backButton;
 
 
-    public CreateForm(Client client, Retrofit retrofit) {
+    public CreateForm(Client client, GamesAPI gamesAPI) {
 
-        gamesAPI = retrofit.create(GamesAPI.class);
+        this.gamesAPI = gamesAPI;
 
         this.client = client;
 
@@ -78,4 +78,8 @@ public class CreateForm {
     }
 
 
+    @Override
+    public void willAppear() {
+
+    }
 }

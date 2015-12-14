@@ -9,6 +9,8 @@ public class Constants {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    //public static final String SERVICE_DIRECTORY_URL = "https://vs-docker.informatik.haw-hamburg.de/ports/8053";
-    public static final String SERVICE_DIRECTORY_URL = "http://127.0.0.1:4567";
+    public static final String SERVICE_DIRECTORY_URL = "https://vs-docker.informatik.haw-hamburg.de/ports/8053";
+    //public static final String SERVICE_DIRECTORY_URL = "http://127.0.0.1:4567";
+
+    public static final String GAMES_SERVICE_NAME = "SuperTeamGamesService";
 }

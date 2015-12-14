@@ -1,6 +1,7 @@
 package haw.vs.superteam.gamesservice;
 
 import com.google.gson.Gson;
+import haw.vs.superteam.gamesservice.api.BoardsAPI;
 import haw.vs.superteam.gamesservice.api.ServicesAPI;
 import haw.vs.superteam.gamesservice.model.*;
 import retrofit.GsonConverterFactory;
@@ -33,7 +34,9 @@ public class GameService {
     public GameService() throws IOException {
 
         String ip = InetAddress.getLocalHost().getHostAddress();
-        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
+//        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
+        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/ports/15321";
+
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
@@ -44,25 +47,24 @@ public class GameService {
         servicesAPI = retrofit.create(ServicesAPI.class);
 
 
-//        ServiceLocator serviceLocator = new ServiceLocator(servicesAPI);
-//        Service boardsService = serviceLocator.getBoardsService();
-//        String boardsServiceURI = boardsService.getUri();
-//
-//        Retrofit boardsServiceRetrofit = new Retrofit.Builder()
-//                .baseUrl(boardsServiceURI + "/")
-//                .addConverterFactory(GsonConverterFactory.create(gson))
-//                .client(Utils.getUnsafeOkHttpClient())
-//                .build();
-//
-//        BoardsAPI boardsAPI = boardsServiceRetrofit.create(BoardsAPI.class);
+        ServiceLocator serviceLocator = new ServiceLocator(servicesAPI);
+        Service boardsService = serviceLocator.getBoardsService();
+        String boardsServiceURI = boardsService.getUri();
+
+        Retrofit boardsServiceRetrofit = new Retrofit.Builder()
+                .baseUrl(boardsServiceURI + "/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(Utils.getUnsafeOkHttpClient())
+                .build();
+
+        BoardsAPI boardsAPI = boardsServiceRetrofit.create(BoardsAPI.class);
 
         Components components = new Components();
         components.setGame(serviceURI + "/games");
-//        components.setBoard(boardsServiceURI);
+        components.setBoard(boardsServiceURI);
         //TODO set component paths
 
-//        gameController = new GameController(components, boardsAPI);
-        gameController = new GameController(components, null);
+        gameController = new GameController(components, boardsAPI);
     }
 
     public static void main(String[] args) throws IOException {
