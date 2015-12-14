@@ -6,7 +6,7 @@ package de.haw_hamburg.vs.wise15.superteam.events;
 public class Subscription {
 
 
-    private String id;
+    private transient String id;
     private String gameId;
     private String uri;
     private Event event;
