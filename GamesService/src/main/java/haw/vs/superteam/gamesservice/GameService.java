@@ -60,7 +60,7 @@ public class GameService {
         BoardsAPI boardsAPI = boardsServiceRetrofit.create(BoardsAPI.class);
 
         Components components = new Components();
-        components.setGame(serviceURI + "/games");
+        components.setGame(serviceURI);
         components.setBoard(boardsServiceURI);
         //TODO set component paths
 
