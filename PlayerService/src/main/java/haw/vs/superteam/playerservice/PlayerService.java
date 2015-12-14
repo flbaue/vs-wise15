@@ -21,7 +21,7 @@ public class PlayerService {
 
 
     public PlayerService() {
-        playerController = new PlayerController();
+        playerController = new PlayerController(new ClientFacade());
     }
 
     public static void main(String[] args) {
