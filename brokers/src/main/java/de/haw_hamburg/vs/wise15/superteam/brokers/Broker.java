@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class Broker {
 
     //brokerId == gameId
-    private String brokerId;
+    private transient String brokerId;
     private Game game;
    // private Map<Place, Estate> soldPlaces = new HashMap<>();
     private ArrayList<Place> notSold = new ArrayList<Place>();
