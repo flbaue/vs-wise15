@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -124,7 +123,7 @@ public class EventService {
     }
 
     //post http://localhost:4567/events?gameId event in body
-    private Object createEvents(Request request, Response response) throws UnirestException {
+    private Object createEvents(Request request, Response response) throws Exception {
         String gameId = request.queryString();
         List<Event> ary;
         try {
@@ -160,7 +159,7 @@ public class EventService {
                 }
             }
             response.status(201);
-            return "events " + event.getId();
+            return "event by id: " + event.getId();
 
         } catch (JsonSyntaxException e) {
             return "JsonSyntaxException bei post/events";
@@ -207,7 +206,6 @@ public class EventService {
     //get http://localhost:4567/events?gameId
     private Object getEvents(Request request, Response response) {
         String gameId = request.queryString();
-        System.out.println(gameId);
         List<Event> events = this.events.get(gameId);
 
         if (events != null) {

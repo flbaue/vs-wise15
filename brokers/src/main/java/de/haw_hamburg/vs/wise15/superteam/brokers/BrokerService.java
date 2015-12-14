@@ -144,6 +144,11 @@ public class BrokerService {
 
     //post http://localhost:4567/broker/:gameid/places/:placeid/visit/:playerid
     private Object visitPlace(Request request, Response response) {
+        //ist der place schon verkauft?
+        //ja-> gehört der lace dem playerid ja-> nichts wird pasieren
+                                            //nein-> miete zahlen
+                                                        //bezahlt-> ein event an den besitzer schicken, dass die miete bezahlt wurde
+        //nein->kann der playerid diesen platz kaufen
         return null;
     }
 
