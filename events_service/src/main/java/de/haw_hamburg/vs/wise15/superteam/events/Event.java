@@ -1,23 +1,41 @@
 package de.haw_hamburg.vs.wise15.superteam.events;
 
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 public class Event {
 
-    private String id;
+    private transient String id;
     private String type;
     private String name;
     private String reason;
     private String resource;
     private Player player;
+    private transient Gson gson = new Gson();
 
-    public Event(String type, String name, String reason, String resource, Player player){
+    public Event(String type, String name, String reason, String resource, String player) {
         this.type = type;
         this.name = name;
         this.reason = reason;
-        this.resource=resource;
-        this.player = player;
+        this.resource = resource;
+        try {
+            this.player = gson.fromJson(player, Player.class);
+        } catch (JsonSyntaxException e) {
+
+        }
     }
-    public Event(){
+
+    public Event() {
+
+    }
+
+    public boolean matchesEvent(Subscription s) {
+        return type.matches(s.getEvent().getType())
+                && name.matches(s.getEvent().getName())
+                && reason.matches(s.getEvent().getReason())
+                && resource.matches(s.getEvent().getResource())
+                && player.matchesPlayer(s.getEvent().getPlayer());
 
     }
 
