@@ -1,21 +1,21 @@
 package haw.vs.superteam.playerservice;
 
+import haw.vs.superteam.playerservice.model.Client;
 import haw.vs.superteam.playerservice.model.Event;
 import haw.vs.superteam.playerservice.model.Player;
 
-import java.net.ServerSocket;
+import java.io.IOException;
 import java.net.Socket;
 
 /**
  * Created by florian on 13.12.15.
  */
 public class PlayerController {
+    private Socket clientSocket;
     private Player playerDetails;
-    private final Socket clientSocket;
 
     public PlayerController() {
-//        ServerSocket serverSocket = new ServerSocket(44444);
-//        clientSocket = serverSocket.accept();
+
     }
 
     public Player getPlayerDetails() {
@@ -30,4 +30,13 @@ public class PlayerController {
 
     }
 
+    public boolean connectClient(Client client) {
+        try {
+            clientSocket = new Socket(client.getHost(), client.getPort());
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

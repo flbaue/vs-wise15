@@ -1,6 +1,7 @@
 package haw.vs.superteam.playerservice;
 
 import com.google.gson.Gson;
+import haw.vs.superteam.playerservice.model.Client;
 import haw.vs.superteam.playerservice.model.Event;
 import haw.vs.superteam.playerservice.model.Player;
 import spark.Request;
@@ -34,6 +35,18 @@ public class PlayerService {
         get("/player", this::player);
         post("/player/turn", this::playerTurn);
         post("/player/event", this::playerEvent);
+        post("/client", this::connectClient);
+    }
+
+    private Object connectClient(Request request, Response response) {
+
+        Client client = gson.fromJson(request.body(), Client.class);
+        if (playerController.connectClient(client)) {
+            response.status(200);
+        } else {
+            response.status(400);
+        }
+        return "";
     }
 
     private Object root(Request request, Response response) {
