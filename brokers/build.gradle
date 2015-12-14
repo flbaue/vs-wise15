@@ -14,3 +14,15 @@ dependencies {
     compile group: 'com.sparkjava', name: 'spark-core', version: '2.3'
     compile group: 'com.google.code.gson', name: 'gson', version: '2.4'
 }
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'BrokersService of team superteam',
+                'Implementation-Version': version,
+                'Main-Class': 'de.haw_hamburg.vs.wise15.superteam.brokers'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
