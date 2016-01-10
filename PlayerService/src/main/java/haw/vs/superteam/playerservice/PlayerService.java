@@ -7,6 +7,7 @@ import haw.vs.superteam.playerservice.model.Player;
 import spark.Request;
 import spark.Response;
 
+import static spark.Spark.delete;
 import static spark.Spark.get;
 import static spark.Spark.post;
 
@@ -32,21 +33,38 @@ public class PlayerService {
         get("", this::root);
         get("/", this::root);
 
-        get("/player", this::player);
-        post("/player/turn", this::playerTurn);
-        post("/player/event", this::playerEvent);
-        post("/client", this::connectClient);
+        get("/player/:playerId", this::player);
+        post("/player/:playerId/turn", this::playerTurn);
+        post("/player/:playerId/event", this::playerEvent);
+        post("/player", this::addPlayer);
+        delete("/player/:playerId", this::deletePlayer);
+
+        registerService();
     }
 
-    private Object connectClient(Request request, Response response) {
+    private void registerService() {
+
+        String name = "SuperTeamPlayersService";
+    }
+
+    private Object deletePlayer(Request request, Response response) {
+        int playerId = Integer.parseInt(request.params("playerId"));
+        playerController.deletePlayer(playerId);
+        response.status(200);
+        return "Player deleted";
+    }
+
+    private Object addPlayer(Request request, Response response) {
 
         Client client = gson.fromJson(request.body(), Client.class);
-        if (playerController.connectClient(client)) {
+        int playerId = playerController.addPlayer(client);
+        if (playerId >= 0) {
             response.status(200);
+            return playerId;
         } else {
             response.status(400);
+            return "";
         }
-        return "";
     }
 
     private Object root(Request request, Response response) {
@@ -54,7 +72,13 @@ public class PlayerService {
     }
 
     private Object player(Request request, Response response) {
-        Player player = playerController.getPlayerDetails();
+        int playerId = Integer.parseInt(request.params("playerId"));
+        Player player = playerController.getPlayerDetails(playerId);
+
+        if(player == null) {
+            response.status(404);
+            return "Player Not Found";
+        }
 
         response.type(CONTENT_TYPE_JSON);
         response.status(200);
@@ -62,7 +86,8 @@ public class PlayerService {
     }
 
     private Object playerTurn(Request request, Response response) {
-        playerController.playerTurn();
+        int playerId = Integer.parseInt(request.params("playerId"));
+        playerController.playerTurn(playerId);
 
         response.type(CONTENT_TYPE_JSON);
         response.status(200);
@@ -70,8 +95,9 @@ public class PlayerService {
     }
 
     private Object playerEvent(Request request, Response response) {
+        int playerId = Integer.parseInt(request.params("playerId"));
         Event[] events = gson.fromJson(request.body(), Event[].class);
-        playerController.playerEvent(events);
+        playerController.playerEvent(playerId, events);
 
         response.type(CONTENT_TYPE_JSON);
         response.status(200);

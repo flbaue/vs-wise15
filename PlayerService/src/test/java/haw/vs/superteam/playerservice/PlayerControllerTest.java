@@ -10,13 +10,12 @@ import static org.junit.Assert.assertTrue;
  */
 public class PlayerControllerTest {
 
-
     @Test
     public void testConnectClient() {
         ClientFacadeMock clientFacade = new ClientFacadeMock();
         clientFacade.expectedHost = "test";
 
         PlayerController controller = new PlayerController(clientFacade);
-        assertTrue(controller.connectClient(new Client("test", 123)));
+        assertTrue(controller.addPlayer(new Client("test", 123)));
     }
 }
