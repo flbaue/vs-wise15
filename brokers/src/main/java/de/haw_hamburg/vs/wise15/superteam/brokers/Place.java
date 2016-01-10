@@ -7,10 +7,33 @@ public class Place {
 
     private String placeId;
     private String name;
-    private Player owner;
+    private String ownerId;   //PlayerId
 
-    public Place(String name){
-        this.name=name;
+    public Place(String placeid){
+        this.placeId=placeid;
     }
 
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public String getPlaceId() {
+        return placeId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setPlaceId(String placeId) {
+        this.placeId = placeId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
+    }
 }
