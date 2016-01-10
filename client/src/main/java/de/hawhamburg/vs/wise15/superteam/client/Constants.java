@@ -13,4 +13,7 @@ public class Constants {
     //public static final String SERVICE_DIRECTORY_URL = "http://127.0.0.1:4567";
 
     public static final String GAMES_SERVICE_NAME = "SuperTeamGamesService";
+    public static final String PLAYER_SERVICE_NAME = "SuperTeamPlayersService";
+
+    public static final int LOCAL_SERVER_PORT = 11111;
 }

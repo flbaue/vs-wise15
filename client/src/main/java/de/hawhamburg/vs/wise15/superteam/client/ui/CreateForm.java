@@ -7,7 +7,6 @@ import de.hawhamburg.vs.wise15.superteam.client.model.Place;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 import de.hawhamburg.vs.wise15.superteam.client.worker.AddPlayerWorker;
 import de.hawhamburg.vs.wise15.superteam.client.worker.CreateGameWorker;
-import retrofit.Retrofit;
 
 import javax.swing.*;
 
@@ -50,7 +49,7 @@ public class CreateForm implements LifeCycle{
 
         //TODO create player
         String id = String.valueOf(Math.round(Math.random() * 1000));
-        Player player = new Player(id, textField1.getText(), "", new Place(""), 42, false);
+        Player player = new Player(id, textField1.getText(), client.playerServiceController.getUri(), new Place(""), 42, false);
 
         AddPlayerWorker addPlayerWorker = new AddPlayerWorker(gamesAPI, game, player, this::playerAdded);
         addPlayerWorker.execute();

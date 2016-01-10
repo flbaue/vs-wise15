@@ -7,7 +7,6 @@ import de.hawhamburg.vs.wise15.superteam.client.model.*;
 import de.hawhamburg.vs.wise15.superteam.client.worker.FetchGamesWorker;
 import de.hawhamburg.vs.wise15.superteam.client.worker.FetchPlayersWorker;
 import retrofit.Response;
-import retrofit.Retrofit;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -17,6 +16,7 @@ import java.io.IOException;
  */
 public class SearchForm implements LifeCycle{
 
+    private final Client client;
     private final GamesAPI gamesAPI;
     private final PlayersAPI playersAPI;
 
@@ -30,6 +30,7 @@ public class SearchForm implements LifeCycle{
     private Player player;
 
     public SearchForm(Client client, GamesAPI gamesAPI, PlayersAPI playersAPI) {
+        this.client = client;
 
         this.gamesAPI = gamesAPI;
         this.playersAPI = playersAPI;
@@ -89,7 +90,7 @@ public class SearchForm implements LifeCycle{
 //        }
 
         String id = String.valueOf(Math.round(Math.random() * 1000));
-        player = new Player(id, playerNameTxt.getText(), "", new Place(""), 42, false);
+        player = new Player(id, playerNameTxt.getText(), client.playerServiceController.getUri(), new Place(""), 42, false);
 
 
         try {

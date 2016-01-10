@@ -19,6 +19,7 @@ import java.awt.*;
  */
 public class Client {
 
+    public final PlayerServiceController playerServiceController;
     private final StartForm startForm;
     private final SearchForm searchForm;
     private final CreateForm createForm;
@@ -27,7 +28,7 @@ public class Client {
     private JFrame frame;
 
 
-    public Client(boolean local) {
+    public Client(boolean local, int localServerPort) {
 
         OkHttpClient httpClient = Utils.getUnsafeOkHttpClient();
         Retrofit serviceRetrofit = new Retrofit.Builder()
@@ -46,12 +47,19 @@ public class Client {
                 .build();
 
 
-//        Service playerService = componentsLocator.getPlayerService("test");
-//        Retrofit playerServiceRetrofit = new Retrofit.Builder()
-//                .baseUrl(playerService.getUri() + "/")
-//                .addConverterFactory(GsonConverterFactory.create())
-//                .client(httpClient)
-//                .build();
+        Service playerService = componentsLocator.getPlayerService(local);
+        Retrofit playerServiceRetrofit = new Retrofit.Builder()
+                .baseUrl(playerService.getUri() + "/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(httpClient)
+                .build();
+        PlayerServiceFacade playerServiceFacade = new PlayerServiceFacade(playerServiceRetrofit.create(PlayersAPI.class), this);
+        int playerId = playerServiceFacade.connectWithPlayerService(localServerPort);
+        System.out.println("PlayerId: " + playerId);
+        playerServiceController = new PlayerServiceController(playerService, playerServiceFacade, playerId);
+        playerServiceController.startListening();
+
+        playerServiceController.addCommandListener("TURN", (a) -> System.out.println("TURN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
 
         startForm = new StartForm(this);
         searchForm = new SearchForm(this, GamesServiceRetrofit.create(GamesAPI.class), null);
@@ -63,10 +71,10 @@ public class Client {
 
     public static void main(String[] args) {
 
-        if(args.length > 0) {
-            new Client(true).run();
+        if (args.length > 0) {
+            new Client(Boolean.parseBoolean(args[0]), Integer.parseInt(args[1])).run();
         } else {
-            new Client(false).run();
+            new Client(false, Constants.LOCAL_SERVER_PORT).run();
         }
     }
 
@@ -125,5 +133,12 @@ public class Client {
         frame.getContentPane().add(container);
         frame.getContentPane().revalidate();
         frame.getContentPane().repaint();
+    }
+
+    public void couldNotConnectToPlayerService(String s) {
+        JOptionPane.showMessageDialog(frame,
+                "Could not connect to the PlayerService.\nSee log for details.",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
 }
