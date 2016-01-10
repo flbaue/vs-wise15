@@ -37,9 +37,17 @@ public class GameService {
 //        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
         serviceURI = "https://vs-docker.informatik.haw-hamburg.de/ports/15321";
 
+        String serviceDirectoryURL = System.getenv().get("DIRECTORY_SERVICE_URL");
+        if(serviceDirectoryURL == null || serviceDirectoryURL.isEmpty()) {
+            serviceDirectoryURL = Constants.SERVICE_DIRECTORY_URL;
+        }
+
+        if(!serviceDirectoryURL.endsWith("/")) {
+            serviceDirectoryURL += "/";
+        }
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
+                .baseUrl(serviceDirectoryURL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .client(Utils.getUnsafeOkHttpClient())
                 .build();
@@ -48,7 +56,7 @@ public class GameService {
 
 
         ServiceLocator serviceLocator = new ServiceLocator(servicesAPI);
-        Service boardsService = serviceLocator.getBoardsService();
+        Service boardsService = serviceLocator.getBoardsService(true);
         String boardsServiceURI = boardsService.getUri();
 
         Retrofit boardsServiceRetrofit = new Retrofit.Builder()
