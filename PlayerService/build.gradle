@@ -1,5 +1,5 @@
 group 'haw.vs.superteam'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 apply plugin: 'java'
 
@@ -20,9 +20,9 @@ dependencies {
 //create a single Jar with all dependencies
 task fatJar(type: Jar) {
     manifest {
-        attributes 'Implementation-Title': 'GamesService of team superteam',
+        attributes 'Implementation-Title': 'PlayerService of team superteam',
                 'Implementation-Version': version,
-                'Main-Class': 'haw.vs.superteam.gamesservice.GameService'
+                'Main-Class': 'haw.vs.superteam.playerservice.PlayerService'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

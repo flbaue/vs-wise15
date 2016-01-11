@@ -11,7 +11,7 @@ import javax.swing.table.DefaultTableModel;
 /**
  * Created by florian on 11.01.16.
  */
-public class GameFormSimple {
+public class GameFormSimple implements LifeCycle{
     private final Client client;
     private Game game;
     private Player player;
@@ -48,5 +48,15 @@ public class GameFormSimple {
 
     public JPanel getPanel() {
         return panel;
+    }
+
+    @Override
+    public void willAppear() {
+        DefaultTableModel tableModel = new DefaultTableModel(columnNames,game.getPlayers().getPlayers().size());
+
+        for(Player player : game.getPlayers().getPlayers()) {
+
+        }
+
     }
 }
