@@ -25,7 +25,6 @@ end
 
 project_folder = File.expand_path(File.dirname(__FILE__))
 jar_folder = "build/libs"
-deploy_proxy = buildList.include?("haproxy")
 
 games_service = Service.new("GamesService", "GamesService-all-1.0.jar", 4502, "superteam/games-service", "GAMESSERVICE")
 player_service = Service.new("PlayerService", "PlayerService-all-1.0.jar", 4500, "superteam/player-service", "PLAYERSERVICE")
@@ -35,12 +34,13 @@ banks_service = Service.new("banks_service", "banks-all-1.0.jar", 4504, "superte
 banks_service2 = Service.new("banks_service", "banks-all-1.0.jar", 4507, "superteam/banks-service-2", "BANKSSERVICE2")
 broker_service = Service.new("brokers", "brokers-all-1.0.jar", 4505, "superteam/brokers-service", "BROKERSSERVICE")
 events_service = Service.new("events_service", "events_service-all-1.0.jar", 4506, "superteam/events-service", "EVENTSSERVICE")
+haproxy_service = Service.new("HAProxy","haproxy.cfg", 4599, "superteam/haproxy", "HAPROXY")
 #jail_service = Service.new("JailService", "JailService-all-1.0.jar", 4507, "superteam/jail-service", "JAILSERVICE")
 #...
 
 failed = []
 
-services = [player_service, boards_service, games_service, dice_service, banks_service, banks_service2, broker_service, events_service]
+services = [player_service, boards_service, games_service, dice_service, banks_service, banks_service2, broker_service, events_service, haproxy_service]
 services.each do |service|
 
   if buildList.size > 0
@@ -52,20 +52,24 @@ services.each do |service|
   service_path = "#{project_folder}/#{service.folder}"
   Dir.chdir service_path
 
-  result = `./gradlew clean fatJar`
-  if !result.include?('BUILD SUCCESSFUL')
-    puts result
-    puts "## Building Failed"
-    puts ""
-    failed << service
-    next
-  else
-    puts "## Building Succeeded"
-  end
+  if service.folder != "HAProxy"
 
+    result = `./gradlew clean fatJar`
+    if !result.include?('BUILD SUCCESSFUL')
+      puts result
+      puts "## Building Failed"
+      puts ""
+      failed << service
+      next
+    else
+      puts "## Building Succeeded"
+    end
+
+  end
   # 2. copy jar to docker folder
   puts "## Copying Jar to Docker folder"
-  jar_path = "#{service_path}/#{jar_folder}/#{service.jar_name}"
+  jar_path = "#{service_path}/#{jar_folder}/#{service.jar_name}" if service.folder != "HAProxy"
+  jar_path = "#{service_path}/#{service.jar_name}" if service.folder == "HAProxy"
   docker_path = "#{project_folder}/docker/#{service.folder}"
   FileUtils.rm_rf(docker_path)
   FileUtils.mkdir_p(docker_path)
@@ -109,57 +113,6 @@ services.each do |service|
     puts ""
     failed << service
     next
-  end
-  puts "## #{service.folder} done."
-  puts ""
-end
-
-if deploy_proxy
-
-  service = Service.new("HAProxy","haproxy.cfg", 4599, "superteam/haproxy", "HAPROXY")
-
-  # banks HA Proxy
-  Dir.chdir project_folder
-  puts "## Copying HAProxy config to Docker folder"
-  config_path = "#{project_folder}/#{service.folder}/#{service.jar_name}"
-  docker_path = "#{project_folder}/docker/#{service.folder}"
-  FileUtils.rm_rf(docker_path)
-  FileUtils.mkdir_p(docker_path)
-  FileUtils.cp(config_path, docker_path)
-
-  puts "## Creating Dockerfile"
-  Dir.chdir docker_path
-  File.open("Dockerfile", 'w') do |f|
-    f.write("FROM haproxy:1.5\n")
-    f.write("COPY haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg\n")
-    f.write("EXPOSE 4567\n")
-  end
-
-  # 4. create docker image
-  puts "## Stopping old container"
-  result = `docker stop #{service.docker_container}`
-  puts "## Removing old container"
-  result = `docker rm #{service.docker_container}`
-  puts "## Removing old image"
-  result = `docker rmi #{service.docker_image}`
-  #puts result
-
-  puts "## Building new Docker image"
-  result = `docker build -t #{service.docker_image} .`
-  if !result.include?("Successfully")
-    puts "## Failed"
-    puts ""
-    failed << service
-  else
-    puts "## New Image #{service.docker_image} build successfully"
-  end
-
-  puts "## Starting new container"
-  result = `docker run -d -p 192.168.99.100:#{service.docker_port}:4567 --name #{service.docker_container} -t #{service.docker_image}`
-  puts result
-  if result.include?("Error")
-    puts ""
-    failed << service
   end
   puts "## #{service.folder} done."
   puts ""
