@@ -35,10 +35,10 @@ public class Components {
     public Components(boolean local) {
         if (local) {
             game = "http://192.168.99.100:4502";
-            dice = "";
+            dice = "http://192.168.99.100:4503";
             board = "http://192.168.99.100:4501";
-            bank = "";
-            broker = "";
+            bank = "http://192.168.99.100:4504";
+            broker = "http://192.168.99.100:4505";
             decks = "";
             events = "";
             player = "http://192.168.99.100:4500";
