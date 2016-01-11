@@ -1,7 +1,8 @@
 package haw.vs.superteam.gamesservice;
 
 import com.google.gson.Gson;
-import haw.vs.superteam.gamesservice.api.BoardsAPI;
+import haw.vs.superteam.gamesservice.api.BoardsAdapter;
+import haw.vs.superteam.gamesservice.api.PlayerAdapter;
 import haw.vs.superteam.gamesservice.api.ServicesAPI;
 import haw.vs.superteam.gamesservice.model.*;
 import retrofit.GsonConverterFactory;
@@ -35,14 +36,15 @@ public class GameService {
 
         String ip = InetAddress.getLocalHost().getHostAddress();
 //        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/cnt/" + ip + "/4567";
-        serviceURI = "https://vs-docker.informatik.haw-hamburg.de/ports/15321";
+        //serviceURI = "https://vs-docker.informatik.haw-hamburg.de/ports/15321";
+        serviceURI = "http://192.168.99.100:4502";
 
         String serviceDirectoryURL = System.getenv().get("DIRECTORY_SERVICE_URL");
-        if(serviceDirectoryURL == null || serviceDirectoryURL.isEmpty()) {
+        if (serviceDirectoryURL == null || serviceDirectoryURL.isEmpty()) {
             serviceDirectoryURL = Constants.SERVICE_DIRECTORY_URL;
         }
 
-        if(!serviceDirectoryURL.endsWith("/")) {
+        if (!serviceDirectoryURL.endsWith("/")) {
             serviceDirectoryURL += "/";
         }
 
@@ -53,26 +55,7 @@ public class GameService {
                 .build();
 
         servicesAPI = retrofit.create(ServicesAPI.class);
-
-
-        ServiceLocator serviceLocator = new ServiceLocator(servicesAPI);
-        Service boardsService = serviceLocator.getBoardsService(true);
-        String boardsServiceURI = boardsService.getUri();
-
-        Retrofit boardsServiceRetrofit = new Retrofit.Builder()
-                .baseUrl(boardsServiceURI + "/")
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .client(Utils.getUnsafeOkHttpClient())
-                .build();
-
-        BoardsAPI boardsAPI = boardsServiceRetrofit.create(BoardsAPI.class);
-
-        Components components = new Components();
-        components.setGame(serviceURI);
-        components.setBoard(boardsServiceURI);
-        //TODO set component paths
-
-        gameController = new GameController(components, boardsAPI);
+        gameController = new GameController(serviceURI, new PlayerAdapter(), new BoardsAdapter());
     }
 
     public static void main(String[] args) throws IOException {
@@ -243,12 +226,14 @@ public class GameService {
     private Object createNewGame(Request request, Response response) {
         log.fine("creating new game");
 
-        Game game = gameController.createNewGame();
+        Game game = gson.fromJson(request.body(), Game.class);
+        game = gameController.createNewGame(game.getComponents());
 
         log.fine("game " + game.getGameid() + " created");
 
         response.status(200);
         response.type(APPLICATION_JSON);
+        response.header("Location", serviceURI + "/games/" + game.getGameid());
         return game;
     }
 

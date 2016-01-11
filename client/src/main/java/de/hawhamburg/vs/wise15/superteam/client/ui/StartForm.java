@@ -14,6 +14,7 @@ public class StartForm implements LifeCycle{
     private JLabel label;
     private JButton searchGameButton;
     private JButton createGameButton;
+    private JButton settingsButton;
 
 
     public StartForm(Client client) {
@@ -22,6 +23,7 @@ public class StartForm implements LifeCycle{
 
         searchGameButton.addActionListener(e -> client.openSearchForm());
         createGameButton.addActionListener(e -> client.openCreateForm());
+        settingsButton.addActionListener(e -> client.openSettingsForm());
     }
 
 

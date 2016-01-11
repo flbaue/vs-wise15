@@ -3,10 +3,9 @@ package de.hawhamburg.vs.wise15.superteam.client;
 import com.squareup.okhttp.OkHttpClient;
 import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.api.PlayersAPI;
-import de.hawhamburg.vs.wise15.superteam.client.api.YellowPagesAPI;
+import de.hawhamburg.vs.wise15.superteam.client.model.Components;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
-import de.hawhamburg.vs.wise15.superteam.client.model.Service;
 import de.hawhamburg.vs.wise15.superteam.client.ui.*;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
@@ -20,52 +19,55 @@ import java.awt.*;
 public class Client {
 
     public final PlayerServiceController playerServiceController;
+    public final Components components;
     private final StartForm startForm;
     private final SearchForm searchForm;
     private final CreateForm createForm;
     private final LobbyForm lobbyForm;
-    private final GameForm gameForm;
+    private final GameFormSimple gameForm;
+    private final SettingsForm settingsForm;
     private JFrame frame;
 
 
     public Client(boolean local, int localServerPort) {
 
+        components = new Components(local);
+
         OkHttpClient httpClient = Utils.getUnsafeOkHttpClient();
-        Retrofit serviceRetrofit = new Retrofit.Builder()
-                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(httpClient)
-                .build();
+//        Retrofit serviceRetrofit = new Retrofit.Builder()
+//                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
+//                .addConverterFactory(GsonConverterFactory.create())
+//                .client(httpClient)
+//                .build();
 
-        ComponentsLocator componentsLocator = new ComponentsLocator(serviceRetrofit.create(YellowPagesAPI.class));
+        //ComponentsLocator componentsLocator = new ComponentsLocator(serviceRetrofit.create(YellowPagesAPI.class));
 
-        Service gamesService = componentsLocator.getGamesService(local);
+        //Service gamesService = componentsLocator.getGamesService(local);
         Retrofit GamesServiceRetrofit = new Retrofit.Builder()
-                .baseUrl(gamesService.getUri() + "/")
+                .baseUrl(components.getGame() + "/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)
                 .build();
 
 
-        Service playerService = componentsLocator.getPlayerService(local);
+        //Service playerService = componentsLocator.getPlayerService(local);
         Retrofit playerServiceRetrofit = new Retrofit.Builder()
-                .baseUrl(playerService.getUri() + "/")
+                .baseUrl(components.getPlayer() + "/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)
                 .build();
-        PlayerServiceFacade playerServiceFacade = new PlayerServiceFacade(playerServiceRetrofit.create(PlayersAPI.class), this);
-        int playerId = playerServiceFacade.connectWithPlayerService(localServerPort);
-        System.out.println("PlayerId: " + playerId);
-        playerServiceController = new PlayerServiceController(playerService, playerServiceFacade, playerId);
-        playerServiceController.startListening();
 
+        PlayerServiceFacade playerServiceFacade = new PlayerServiceFacade(playerServiceRetrofit.create(PlayersAPI.class), this);
+        playerServiceController = new PlayerServiceController(components.getPlayer(), playerServiceFacade, localServerPort);
+        playerServiceController.startListening();
         playerServiceController.addCommandListener("TURN", (a) -> System.out.println("TURN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
 
         startForm = new StartForm(this);
         searchForm = new SearchForm(this, GamesServiceRetrofit.create(GamesAPI.class), null);
         createForm = new CreateForm(this, GamesServiceRetrofit.create(GamesAPI.class));
         lobbyForm = new LobbyForm(this, GamesServiceRetrofit.create(GamesAPI.class));
-        gameForm = new GameForm();
+        gameForm = new GameFormSimple(this);
+        settingsForm = new SettingsForm(this, components);
     }
 
 
@@ -85,6 +87,8 @@ public class Client {
         frame.setSize(500, 500);
         frame.getContentPane().add(new StartForm(this).getPanel());
         frame.setVisible(true);
+
+        openGameForm(new Game(), new Player()); // test
     }
 
 
@@ -108,6 +112,12 @@ public class Client {
         changeContentPane(startForm.getPanel());
     }
 
+    public void openSettingsForm() {
+
+        settingsForm.willAppear();
+        changeContentPane(settingsForm.getPanel());
+    }
+
 
     public void openLobbyForm(Game game, Player player) {
 
@@ -119,10 +129,10 @@ public class Client {
     }
 
 
-    public void openGameForm(Game game) {
+    public void openGameForm(Game game, Player player) {
 
         gameForm.setGame(game);
-//        gameForm
+        gameForm.setPlayer(player);
         changeContentPane(gameForm.getPanel());
     }
 

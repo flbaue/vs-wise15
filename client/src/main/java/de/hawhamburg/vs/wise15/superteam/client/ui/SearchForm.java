@@ -54,6 +54,7 @@ public class SearchForm implements LifeCycle{
         enterGameButton.addActionListener(e -> {
             Game game = gameList.getSelectedValue();
             if (joinPlayer(game)) {
+                client.components.set(game.getComponents());
                 client.openLobbyForm(game, player);
             }
         });
@@ -75,19 +76,6 @@ public class SearchForm implements LifeCycle{
 
 
         Player player;
-
-//        try {
-//            Response<Player> playerResponse = playersAPI.createPlayer().execute();
-//            if (playerResponse.isSuccess()) {
-//                player = playerResponse.body();
-//            } else {
-//                errorPlayerNotCreated(new IOException(playerResponse.message()));
-//                return false;
-//            }
-//        } catch (IOException e) {
-//            errorPlayerNotCreated(e);
-//            return false;
-//        }
 
         String id = String.valueOf(Math.round(Math.random() * 1000));
         player = new Player(id, playerNameTxt.getText(), client.playerServiceController.getUri(), new Place(""), 42, false);

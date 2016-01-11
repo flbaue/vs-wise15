@@ -1,5 +1,7 @@
 package haw.vs.superteam.gamesservice.model;
 
+import haw.vs.superteam.gamesservice.api.PlayerAPI;
+
 /**
  * Created by florian on 16.11.15.
  */
@@ -11,6 +13,7 @@ public class Player {
     private Place place;
     private int position;
     private boolean ready;
+    private transient PlayerAPI api;
 
     public Player() {
 
@@ -94,6 +97,14 @@ public class Player {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    public PlayerAPI getAPI() {
+        return api;
+    }
+
+    public void setAPI(PlayerAPI api) {
+        this.api = api;
     }
 }
 

@@ -48,10 +48,16 @@ public class LobbyForm implements LifeCycle {
 
         timer = new Timer(2000, e -> refresh()); //TODO: game service should send event to player
 
+        client.playerServiceController.addCommandListener("GAME_STARTED", e -> gameStarted());
+    }
+
+    private void gameStarted() {
+        timer.stop();
+        client.openGameForm(game, player);
     }
 
     private void playerReadyCallback(Boolean playerReady, Exception e) {
-        if(playerReady == false) {
+        if (playerReady == false) {
             showError(e);
             return;
         }

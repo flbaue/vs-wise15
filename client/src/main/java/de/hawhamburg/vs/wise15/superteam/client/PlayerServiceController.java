@@ -1,7 +1,6 @@
 package de.hawhamburg.vs.wise15.superteam.client;
 
 import de.hawhamburg.vs.wise15.superteam.client.callback.CallbackA;
-import de.hawhamburg.vs.wise15.superteam.client.model.Service;
 import de.hawhamburg.vs.wise15.superteam.client.worker.CommandListener;
 
 import java.util.HashMap;
@@ -14,17 +13,17 @@ import java.util.Map;
  */
 public class PlayerServiceController {
 
-    private final Service playerService;
+    private final String playerService;
     private final int playerId;
     private Map<String, List<CallbackA<String>>> listenerMap = new HashMap<>();
     private PlayerServiceFacade facade;
     private Thread listenerThread;
-    private String uri;
 
-    public PlayerServiceController(Service playerService, PlayerServiceFacade playerServiceFacade, int playerId) {
+    public PlayerServiceController(String playerService, PlayerServiceFacade playerServiceFacade, int localServerPort) {
         this.playerService = playerService;
         this.facade = playerServiceFacade;
-        this.playerId = playerId;
+
+        playerId = playerServiceFacade.connectWithPlayerService(localServerPort);
     }
 
     public void addCommandListener(String command, CallbackA<String> listener) {
@@ -43,7 +42,7 @@ public class PlayerServiceController {
     }
 
     public String getUri() {
-        String uri = playerService.getUri() + "/player/" + playerId;
+        String uri = playerService + "/player/" + playerId;
         System.out.println("Player URI: " + uri);
         return uri;
     }

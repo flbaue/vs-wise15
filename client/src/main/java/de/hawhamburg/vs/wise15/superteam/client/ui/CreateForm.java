@@ -30,7 +30,7 @@ public class CreateForm implements LifeCycle{
 
         backButton.addActionListener(e -> client.openStartForm());
         createGameButton.addActionListener(e -> {
-            CreateGameWorker createGameWorker = new CreateGameWorker(gamesAPI, this::gameCreated);
+            CreateGameWorker createGameWorker = new CreateGameWorker(gamesAPI, this::gameCreated, client.components);
             createGameWorker.execute();
         });
     }
