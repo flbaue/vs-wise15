@@ -53,7 +53,6 @@ services.each do |service|
   Dir.chdir service_path
 
   if service.folder != "HAProxy"
-
     result = `./gradlew clean fatJar`
     if !result.include?('BUILD SUCCESSFUL')
       puts result
@@ -64,8 +63,8 @@ services.each do |service|
     else
       puts "## Building Succeeded"
     end
-
   end
+
   # 2. copy jar to docker folder
   puts "## Copying Jar to Docker folder"
   jar_path = "#{service_path}/#{jar_folder}/#{service.jar_name}" if service.folder != "HAProxy"
@@ -78,12 +77,20 @@ services.each do |service|
   # 3. create Dockerfile
   puts "## Creating Dockerfile"
   Dir.chdir docker_path
-  File.open("Dockerfile", 'w') do |f|
-    f.write("FROM java:8\n")
-    f.write("COPY . /usr/local\n")
-    f.write("WORKDIR /usr/local\n")
-    f.write("CMD [\"java\", \"-jar\", \"#{service.jar_name}\"]\n")
-    f.write("EXPOSE 4567\n")
+  if service.folder != "HAProxy"
+    File.open("Dockerfile", 'w') do |f|
+      f.write("FROM java:8\n")
+      f.write("COPY . /usr/local\n")
+      f.write("WORKDIR /usr/local\n")
+      f.write("CMD [\"java\", \"-jar\", \"#{service.jar_name}\"]\n")
+      f.write("EXPOSE 4567\n")
+    end
+  else
+    File.open("Dockerfile", 'w') do |f|
+      f.write("FROM haproxy:1.5\n")
+      f.write("COPY haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg\n")
+      f.write("EXPOSE 4567\n")
+    end
   end
 
   # 4. create docker image
