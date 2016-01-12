@@ -90,6 +90,7 @@ services.each do |service|
       f.write("FROM haproxy:1.5\n")
       f.write("COPY haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg\n")
       f.write("EXPOSE 4567\n")
+      f.write("EXPOSE 4568\n")
     end
   end
 
@@ -114,7 +115,8 @@ services.each do |service|
   end
 
   puts "## Starting new container"
-  result = `docker run -d -p 192.168.99.100:#{service.docker_port}:4567 --name #{service.docker_container} -t #{service.docker_image}`
+  result = `docker run -d -p 192.168.99.100:#{service.docker_port}:4567 --name #{service.docker_container} -t #{service.docker_image}` if service.folder != "HAProxy"
+  result = `docker run -d -p 192.168.99.100:#{service.docker_port}:4567 -p 192.168.99.100:4568:4568 --name #{service.docker_container} -t #{service.docker_image}` if service.folder == "HAProxy"
   puts result
   if result.include?("Error")
     puts ""
