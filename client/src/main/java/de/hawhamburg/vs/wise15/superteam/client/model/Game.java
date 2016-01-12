@@ -1,7 +1,5 @@
 package de.hawhamburg.vs.wise15.superteam.client.model;
 
-import java.util.List;
-
 /**
  * Created by florian on 16.11.15.
  */
@@ -25,6 +23,10 @@ public class Game {
         this.players = players;
         this.started = started;
         this.uri = uri;
+        this.components = components;
+    }
+
+    public Game(Components components) {
         this.components = components;
     }
 

@@ -3,10 +3,7 @@ package de.haw_hamburg.vs.wise15.superteam.events;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -16,14 +13,11 @@ import spark.Request;
 import spark.Response;
 
 import javax.net.ssl.SSLContext;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static spark.Spark.*;
 
@@ -33,154 +27,193 @@ import static spark.Spark.*;
 public class EventService {
 
     Gson gson = new Gson();
-    private String ip;
-    Map<String,ArrayList<Event>> events = new HashMap<>();
-    Integer id;
-    Integer subsId;
-    ArrayList<Subscription> subsList = new ArrayList<Subscription>();
-    public static void main(String[] args) {
+    Map<String, List<Event>> events = new HashMap<>();
+    List<Subscription> subsList = new ArrayList<Subscription>();
+    private AtomicInteger subsId = new AtomicInteger(0);
+    private AtomicInteger eventId = new AtomicInteger(0);
 
-
+    public static void main(String[] args) throws Exception {
         new EventService().run();
     }
 
-    private void run() {
+    private void run() throws Exception {
         //anmeldung
         //https://vs-docker.informatik.haw-hamburg.de/ports/8053/services
         register();
-        System.out.println("PlayerService is starting");
+        System.out.println("EventsService is starting");
 
-        //List of available event
+        //List of available event by gameId
+        //ok, bis auf die Benachrichtigung
         post("/events", this::createEvents);
 
-        //List of available event
+        //List of available event by gameId
+        //ok
         get("/events", this::getEvents);
 
-        //gets the event details
-        get("/events/{eventId}", this::getEventDetails);
+        //alle events bei gameId löschen
+        //ok
+        delete("/events", this::deleteEvent);
 
         //List of available subscription
+        //ok
         get("/events/subscriptions", this::getEventSubscriptions);
 
+        //gets the event details
+        //ok
+        get("/events/:eventId", this::getEventDetails);
+
         //removes the subscription from the service
-        delete("/events/subscriptions/subscriptions/{subscription}", this::deleteEventSubscriptions);
+        //ok
+        delete("/events/subscriptions/subscriptions/:subscription", this::deleteEventSubscriptions);
 
         //alle Interessenten benachrichtigt werden über neue Events
+        //ok
         post("/events/subscriptions", this::postEventSubscriptions);
 
-        //post (uri of the subscroption)
     }
 
-    private void register() {
-        try {
-            ip = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+    //delete http://localhost:4567/events?gameId
+    private Object deleteEvent(Request request, Response response) {
+        String gameId = request.queryString();
+        List<Event> events = this.events.get(gameId);
+
+        if (events != null) {
+            this.events.get(gameId).clear();
+            response.status(200);
+            return "erfolgreich gelöscht";
+        } else {
+            response.status(404);
+            return "bei gameId keine eventliste";
         }
+    }
+
+    private void register() throws Exception {
+
         JsonObject json = new JsonObject();
         json.addProperty("name", "SuperTeamEventsService");
         json.addProperty("description", "Event Service von SuperTeam");
-        json.addProperty("service","events");
-        json.addProperty("uri","https://vs-docker.informatik.haw-hamburg.de/cnt/"+ ip+"/4567");
-        try {
-            SSLContext sslcontext = null;
-            try {
-                sslcontext = SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (KeyManagementException e) {
-                e.printStackTrace();
-            } catch (KeyStoreException e) {
-                e.printStackTrace();
-            }
+        json.addProperty("service", "events");
+        json.addProperty("uri", "https://vs-docker.informatik.haw-hamburg.de/ports/15325");
+        SSLContext sslcontext = null;
+        sslcontext = SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setSSLSocketFactory(sslsf)
+                .build();
+        Unirest.setHttpClient(httpclient);
+        //sout
+        //System.out.println(json.toString());
+        Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
+                .header("Content-Type", "application/json")
+                .body(json.toString()).asJson();
 
-            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
-            CloseableHttpClient httpclient = HttpClients.custom()
-                    .setSSLSocketFactory(sslsf)
-                    .build();
-            Unirest.setHttpClient(httpclient);
-            //sout
-            System.out.println(json.toString());
-            HttpResponse<JsonNode> jsonNodeHttpResponse = Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
-                    .header("Content-Type", "application/json")
-                    .body(json.toString()).asJson();
-            System.out.println(jsonNodeHttpResponse.getStatus());
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        }
     }
 
-
+    //post http://localhost:4567/events/subscriptions subscription in body
     private Object postEventSubscriptions(Request request, Response response) {
-        subsId++;
         try {
             Subscription subscription = gson.fromJson(request.body(), Subscription.class);
-            subscription.setId(Integer.toString(subsId));
+            subscription.setId(Integer.toString(subsId.incrementAndGet()));
             subsList.add(subscription);
             response.status(201);
-            return null;
-        }catch(JsonSyntaxException e){
+            return "subscription " + subscription.getId();
+        } catch (JsonSyntaxException e) {
             return "JsonSyntaxException von post events/subscriptions";
         }
     }
 
-    private Object createEvents(Request request, Response response) {
-        //gameid als queryparm
-        //event in body
+    //post http://localhost:4567/events?gameId event in body
+    private Object createEvents(Request request, Response response) throws Exception {
         String gameId = request.queryString();
-        ArrayList<Event> ary;
-        id ++;
-        try{
+        List<Event> ary;
+        try {
             Event event = gson.fromJson(request.body(), Event.class);
-            event.setId(Integer.toString(id));
-            //Todo: wann wird die map ausgefüllt!?
-            ary=events.get(gameId);
-            ary.add(event);
-            events.put(gameId,ary);
+            event.setId(Integer.toString(eventId.incrementAndGet()));
+            ary = events.get(gameId);
+            if (ary != null) {
+                ary.add(event);
+
+                events.put(gameId, ary);
+                //subscription durchgehen und uri von subsc das array von events in body zuschicken
+                for (Subscription s : subsList) {
+                    if (event.matchesEvent(s)) {
+                        //post(uri von subscroption und event in array von body)
+                        String body = gson.toJson(new Event[]{event});
+                        Unirest.post(s.getUri())
+                                .header("Content-Type", "application/json")
+                                .body(body).asJson();
+                    }
+                }
+
+            } else {
+                ary = new ArrayList<Event>();
+                ary.add(event);
+                events.put(gameId, ary);
+                for (Subscription s : subsList) {
+                    if (event.matchesEvent(s)) {
+                        String body = gson.toJson(ary);
+                        Unirest.post(s.getUri())
+                                .header("Content-Type", "application/json")
+                                .body(body).asJson();
+                    }
+                }
+            }
             response.status(201);
-            response.header("", "events"+event.getId());
-            return response;
-        }catch (JsonSyntaxException e){
+            return "event by id: " + event.getId();
+
+        } catch (JsonSyntaxException e) {
             return "JsonSyntaxException bei post/events";
         }
     }
 
-
+    //delete http://localhost:4567/events/subscriptions/subscriptions/{subscription}
     private Object deleteEventSubscriptions(Request request, Response response) {
-        String gameId = request.queryString();
-        events.remove(gameId);
-        response.status(200);
-        return null;
+        String subId = request.params(":subscription");
+        for (Subscription s : subsList) {
+            if (s.getId().equals(subId)) {
+                subsList.remove(s);
+                response.status(200);
+                return "gelöscht";
+            }
+        }
+        response.status(404);
+        return "subscriptionId nicht gefunden";
     }
 
+    //get http://localhost:4567/events/subscriptions
     private Object getEventSubscriptions(Request request, Response response) {
-        response.body(gson.toJson(subsList));
+        String s = gson.toJson(subsList);
         response.status(200);
-        return response;
+        return s;
     }
 
+    // get http://localhost:4567/events/1
     private Object getEventDetails(Request request, Response response) {
         String eventId = request.params(":eventId");
-        for (String key : events.keySet()){
-            for (Event element : events.get(key)){
-                if (element.getId().equals(eventId)){
-                    response.body(gson.toJson(element));
+        System.out.println(eventId);
+        for (String key : events.keySet()) {
+            for (Event element : events.get(key)) {
+                if (element.getId().equals(eventId)) {
                     response.status(200);
-                    return response;
+                    return gson.toJson(element);
                 }
             }
         }
         response.status(404);
-        return null;
+        return "kein event bei eventId";
     }
 
+    //get http://localhost:4567/events?gameId
     private Object getEvents(Request request, Response response) {
         String gameId = request.queryString();
-        ArrayList<Event> ary = new ArrayList<Event>();
-        ary = events.get(gameId);
-        String json = gson.toJson(ary);
-        response.status(200);
-        response.body(json);
-        return response;
+        List<Event> events = this.events.get(gameId);
+
+        if (events != null) {
+            response.status(200);
+            return gson.toJson(new EventsCollection(events));
+        } else {
+            response.status(404);
+            return "bei gameId keine eventliste";
+        }
     }
 }

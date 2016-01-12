@@ -2,6 +2,7 @@ package de.hawhamburg.vs.wise15.superteam.client.worker;
 
 import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.callback.CallbackAB;
+import de.hawhamburg.vs.wise15.superteam.client.model.Components;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import retrofit.Response;
 
@@ -15,11 +16,13 @@ public class CreateGameWorker extends SwingWorker<Game, Void> {
 
     private final GamesAPI gamesAPI;
     private final CallbackAB<Game, Exception> callback;
+    private final Components components;
     private Exception e;
 
-    public CreateGameWorker(GamesAPI gamesAPI, CallbackAB<Game, Exception> callback) {
+    public CreateGameWorker(GamesAPI gamesAPI, CallbackAB<Game, Exception> callback, Components components) {
         this.gamesAPI = gamesAPI;
         this.callback = callback;
+        this.components = components;
     }
 
 
@@ -27,7 +30,7 @@ public class CreateGameWorker extends SwingWorker<Game, Void> {
     protected Game doInBackground() {
         Game game = null;
         try {
-            Response<Game> response = gamesAPI.createGame(new Game()).execute();
+            Response<Game> response = gamesAPI.createGame(new Game(components)).execute();
             if (response.isSuccess()) {
                 game = response.body();
             }

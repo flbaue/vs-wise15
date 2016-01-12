@@ -7,8 +7,14 @@ public class Player {
     private String uri;
     private Place place;
     private int position;
-    private boolean turn;
+    private boolean ready;
+    private transient boolean turn;
 
+    public boolean matchesPlayer(Player p){
+        return name.matches(p.getName())
+                && uri.matches(p.getUri())
+                && place.matchesPlace(p.getPlace());
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -43,4 +49,51 @@ public class Player {
         this.playerId = playerId;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
+    public Place getPlace() {
+        return place;
+    }
+
+    public void setPlace(Place place) {
+        this.place = place;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public boolean isReady() {
+        return ready;
+    }
+
+    public void setReady(boolean ready) {
+        this.ready = ready;
+    }
+
+    public boolean isTurn() {
+        return turn;
+    }
+
+    public void setTurn(boolean turn) {
+        this.turn = turn;
+    }
 }

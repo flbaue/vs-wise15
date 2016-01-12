@@ -7,7 +7,6 @@ import de.hawhamburg.vs.wise15.superteam.client.model.*;
 import de.hawhamburg.vs.wise15.superteam.client.worker.FetchGamesWorker;
 import de.hawhamburg.vs.wise15.superteam.client.worker.FetchPlayersWorker;
 import retrofit.Response;
-import retrofit.Retrofit;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -15,8 +14,9 @@ import java.io.IOException;
 /**
  * Created by florian on 16.11.15.
  */
-public class SearchForm {
+public class SearchForm implements LifeCycle{
 
+    private final Client client;
     private final GamesAPI gamesAPI;
     private final PlayersAPI playersAPI;
 
@@ -29,19 +29,18 @@ public class SearchForm {
 
     private Player player;
 
-    public SearchForm(Client client, Retrofit retrofit) {
+    public SearchForm(Client client, GamesAPI gamesAPI, PlayersAPI playersAPI) {
+        this.client = client;
 
-        gamesAPI = retrofit.create(GamesAPI.class);
-        playersAPI = retrofit.create(PlayersAPI.class);
-
-        refresh();
+        this.gamesAPI = gamesAPI;
+        this.playersAPI = playersAPI;
 
         ListSelectionModel selectionModel = gameList.getSelectionModel();
         selectionModel.addListSelectionListener(event -> {
             Game selectedGame = gameList.getSelectedValue();
             if (selectedGame != null) {
                 FetchPlayersWorker fetchPlayersWorkerWorker = new FetchPlayersWorker(
-                        gamesAPI,
+                        this.gamesAPI,
                         selectedGame,
                         this::playersReceived);
 
@@ -55,6 +54,7 @@ public class SearchForm {
         enterGameButton.addActionListener(e -> {
             Game game = gameList.getSelectedValue();
             if (joinPlayer(game)) {
+                client.components.set(game.getComponents());
                 client.openLobbyForm(game, player);
             }
         });
@@ -77,21 +77,8 @@ public class SearchForm {
 
         Player player;
 
-//        try {
-//            Response<Player> playerResponse = playersAPI.createPlayer().execute();
-//            if (playerResponse.isSuccess()) {
-//                player = playerResponse.body();
-//            } else {
-//                errorPlayerNotCreated(new IOException(playerResponse.message()));
-//                return false;
-//            }
-//        } catch (IOException e) {
-//            errorPlayerNotCreated(e);
-//            return false;
-//        }
-
         String id = String.valueOf(Math.round(Math.random() * 1000));
-        player = new Player(id, playerNameTxt.getText(), "", new Place(""), 42);
+        player = new Player(id, playerNameTxt.getText(), client.playerServiceController.getUri(), new Place(""), 42, false);
 
 
         try {
@@ -171,4 +158,8 @@ public class SearchForm {
         //TODO
     }
 
+    @Override
+    public void willAppear() {
+        refresh();
+    }
 }

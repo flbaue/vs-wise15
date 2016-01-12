@@ -12,12 +12,8 @@ public class Game {
     private boolean started;
     private String uri;
     private Components components;
-    private transient Player currentPlayer;
+    private transient int currentPlayer;
     private transient Player mutexPlayer;
-
-
-    public Game() {
-    }
 
 
     public Game(String gameid, PlayerCollection players, boolean started, String uri, Components components) {
@@ -30,9 +26,10 @@ public class Game {
         this.components = components;
     }
 
-    public Game(String gameid) {
+    public Game(String gameid, Components components) {
         this.gameid = gameid;
         this.players = new PlayerCollection();
+        this.components = components;
     }
 
 
@@ -61,8 +58,7 @@ public class Game {
         if (players != null && !players.isEmpty() && players.allPlayersReady() && !started) {
             started = true;
 
-            //TODO set current player, etc...
-
+            setCurrentPlayer(0);
         }
         return started;
     }
@@ -82,9 +78,9 @@ public class Game {
         return components;
     }
 
-    public void setComponents(Components components) {
-        this.components = components;
-    }
+//    public void setComponents(Components components) {
+//        this.components = components;
+//    }
 
     public boolean addNewPlayer(Player player) {
         if (players == null) {
@@ -114,10 +110,11 @@ public class Game {
     }
 
     public Player getCurrentPlayer() {
-        return currentPlayer;
+
+        return players.getPlayers().get(currentPlayer);
     }
 
-    public void setCurrentPlayer(Player currentPlayer) {
+    public void setCurrentPlayer(int currentPlayer) {
         this.currentPlayer = currentPlayer;
     }
 

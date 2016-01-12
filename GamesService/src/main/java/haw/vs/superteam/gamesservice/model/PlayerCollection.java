@@ -59,7 +59,7 @@ public class PlayerCollection {
     }
 
     public boolean allPlayersReady(){
-        return getPlayers().stream().filter(p -> !p.isReady()).findAny().isPresent();
+        return !getPlayers().stream().filter(p -> !p.isReady()).findAny().isPresent();
     }
 
     public boolean isEmpty(){

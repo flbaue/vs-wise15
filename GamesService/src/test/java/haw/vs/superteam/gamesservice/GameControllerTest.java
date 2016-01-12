@@ -1,16 +1,15 @@
 package haw.vs.superteam.gamesservice;
 
-import haw.vs.superteam.gamesservice.api.BoardsAPI;
-import haw.vs.superteam.gamesservice.model.Components;
-import haw.vs.superteam.gamesservice.model.Game;
-import haw.vs.superteam.gamesservice.model.MutexStatus;
-import haw.vs.superteam.gamesservice.model.Player;
+import haw.vs.superteam.gamesservice.api.BoardsAdapter;
+import haw.vs.superteam.gamesservice.api.PlayerAdapter;
+import haw.vs.superteam.gamesservice.model.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by florian on 28.11.15.
@@ -18,14 +17,18 @@ import static org.mockito.Mockito.mock;
 public class GameControllerTest {
 
     GameController controller;
-    private BoardsAPI boardsAPI;
     private Components components;
+    private PlayerAdapter playerAdapter;
+    private BoardsAdapter boardsAdapter;
 
     @Before
     public void setUp() throws Exception {
         components = new Components();
-        boardsAPI = mock(BoardsAPI.class);
-        controller = new GameController(components, boardsAPI);
+        boardsAdapter = mock(BoardsAdapter.class);
+        when(boardsAdapter.createBoard(any(Game.class))).thenReturn(new Board());
+        when(boardsAdapter.addPlayer(any(Game.class), any(Player.class))).thenReturn(true);
+        playerAdapter = mock(PlayerAdapter.class);
+        controller = new GameController("test-uri", playerAdapter, boardsAdapter);
     }
 
     @After
@@ -40,10 +43,11 @@ public class GameControllerTest {
 
     @Test
     public void testCreateNewGame() throws Exception {
-        Game game1 = controller.createNewGame();
+
+        Game game1 = controller.createNewGame(components);
         assertNotNull(game1);
 
-        Game game2 = controller.createNewGame();
+        Game game2 = controller.createNewGame(components);
         assertNotNull(game2);
 
         assertNotEquals(game1, game2);
@@ -59,7 +63,7 @@ public class GameControllerTest {
 
     @Test
     public void testGetGame() throws Exception {
-        Game game1 = controller.createNewGame();
+        Game game1 = controller.createNewGame(components);
 
         Game game2 = controller.getGame(game1.getGameid());
 
@@ -75,7 +79,7 @@ public class GameControllerTest {
         String playerID = "42";
 
         //Add
-        Game game = controller.createNewGame();
+        Game game = controller.createNewGame(components);
         Boolean result = controller.addPlayerToGame(game.getGameid(), playerID, playerName, playerURI);
         assertTrue(result);
 
@@ -105,13 +109,17 @@ public class GameControllerTest {
         String playerID = "42";
 
         //Add Player
-        Game game = controller.createNewGame();
+        Game game = controller.createNewGame(components);
         Boolean result = controller.addPlayerToGame(game.getGameid(), playerID, playerName, playerURI);
 
         boolean ready1 = controller.isPlayerReady(game.getGameid(), playerID);
+        assertFalse(ready1);
         controller.togglePlayerReady(game.getGameid(), playerID);
         boolean ready2 = controller.isPlayerReady(game.getGameid(), playerID);
+        assertTrue(ready2);
+        assertTrue(game.isStarted());
 
+        verify(playerAdapter, times(1)).gameStart(game);
         assertNotEquals(ready1, ready2);
     }
 
@@ -124,7 +132,7 @@ public class GameControllerTest {
         Player player2 = new Player("43", playerName, playerURI);
 
         //Add Player
-        Game game = controller.createNewGame();
+        Game game = controller.createNewGame(components);
         controller.addPlayerToGame(game.getGameid(), playerID, playerName, playerURI);
 
         MutexStatus mutexStatus = controller.setMutex(game.getGameid(), player);

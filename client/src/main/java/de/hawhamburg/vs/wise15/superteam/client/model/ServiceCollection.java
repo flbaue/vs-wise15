@@ -30,7 +30,7 @@ public class ServiceCollection {
 
     public List<String> getServiceIds() {
         if (services == null || services.isEmpty()) {
-            Collections.emptyList();
+            return Collections.emptyList();
         }
 
         List<String> list = new ArrayList<>(services.size());

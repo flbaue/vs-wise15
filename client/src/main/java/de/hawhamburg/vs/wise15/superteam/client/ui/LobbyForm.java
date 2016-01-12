@@ -8,7 +8,7 @@ import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 import de.hawhamburg.vs.wise15.superteam.client.model.PlayerCollection;
 import de.hawhamburg.vs.wise15.superteam.client.worker.DeletePlayerWorker;
 import de.hawhamburg.vs.wise15.superteam.client.worker.FetchPlayersWorker;
-import retrofit.Retrofit;
+import de.hawhamburg.vs.wise15.superteam.client.worker.SetPlayerReadyWorker;
 
 import javax.swing.*;
 import java.util.logging.Logger;
@@ -16,10 +16,11 @@ import java.util.logging.Logger;
 /**
  * Created by florian on 16.11.15.
  */
-public class LobbyForm {
+public class LobbyForm implements LifeCycle {
     private static final Logger log = Utils.getLogger(LobbyForm.class.getName());
     private final Client client;
     private final GamesAPI gamesAPI;
+    private final Timer timer;
     private JPanel panel;
     private JList playerList;
     private JButton readyButton;
@@ -27,20 +28,46 @@ public class LobbyForm {
     private Game game;
     private Player player;
     private DeletePlayerWorker deletePlayerWorker;
+    private SetPlayerReadyWorker setPlayerReadyWorker;
 
 
-    public LobbyForm(Client client, Retrofit retrofit) {
+    public LobbyForm(Client client, GamesAPI gamesAPI) {
         this.client = client;
 
-        gamesAPI = retrofit.create(GamesAPI.class);
+        this.gamesAPI = gamesAPI;
 
         exitButton.addActionListener(e -> {
             deletePlayerWorker = new DeletePlayerWorker(gamesAPI, game.getGameid(), player.getId(), this::leaveLobby);
             deletePlayerWorker.execute();
         });
+
+        readyButton.addActionListener(e -> {
+            setPlayerReadyWorker = new SetPlayerReadyWorker(gamesAPI, game, player, this::playerReadyCallback);
+            setPlayerReadyWorker.execute();
+        });
+
+        timer = new Timer(2000, e -> refresh()); //TODO: game service should send event to player
+
+        client.playerServiceController.addCommandListener("GAME_STARTED", e -> gameStarted());
     }
 
-    public void refresh() {
+    private void gameStarted() {
+        timer.stop();
+        client.openGameForm(game, player);
+    }
+
+    private void playerReadyCallback(Boolean playerReady, Exception e) {
+        if (playerReady == false) {
+            showError(e);
+            return;
+        }
+
+        player.setReady(playerReady);
+        refresh();
+
+    }
+
+    private void refresh() {
         FetchPlayersWorker fetchPlayersWorker = new FetchPlayersWorker(gamesAPI, game, this::playersReceived);
         fetchPlayersWorker.execute();
     }
@@ -60,15 +87,14 @@ public class LobbyForm {
     }
 
     private void leaveLobby() {
+        timer.stop();
         client.openStartForm();
     }
-
 
     public JPanel getPanel() {
 
         return panel;
     }
-
 
     public Game getGame() {
         return game;
@@ -86,4 +112,9 @@ public class LobbyForm {
         this.player = player;
     }
 
+    @Override
+    public void willAppear() {
+        refresh();
+        timer.start();
+    }
 }

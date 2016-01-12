@@ -1,6 +1,9 @@
 package de.hawhamburg.vs.wise15.superteam.client;
 
 import com.squareup.okhttp.OkHttpClient;
+import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
+import de.hawhamburg.vs.wise15.superteam.client.api.PlayersAPI;
+import de.hawhamburg.vs.wise15.superteam.client.model.Components;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 import de.hawhamburg.vs.wise15.superteam.client.ui.*;
@@ -15,43 +18,66 @@ import java.awt.*;
  */
 public class Client {
 
+    public final PlayerServiceController playerServiceController;
+    public final Components components;
     private final StartForm startForm;
     private final SearchForm searchForm;
     private final CreateForm createForm;
     private final LobbyForm lobbyForm;
-    private final GameForm gameForm;
-    //private final ComponentsHolder componentsHolder;
+    private final GameFormSimple gameForm;
+    private final SettingsForm settingsForm;
     private JFrame frame;
 
 
-    public Client() {
+    public Client(boolean local, int localServerPort) {
+
+        components = new Components(local);
 
         OkHttpClient httpClient = Utils.getUnsafeOkHttpClient();
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
+//        Retrofit serviceRetrofit = new Retrofit.Builder()
+//                .baseUrl(Constants.SERVICE_DIRECTORY_URL + "/")
+//                .addConverterFactory(GsonConverterFactory.create())
+//                .client(httpClient)
+//                .build();
+
+        //ComponentsLocator componentsLocator = new ComponentsLocator(serviceRetrofit.create(YellowPagesAPI.class));
+
+        //Service gamesService = componentsLocator.getGamesService(local);
+        Retrofit GamesServiceRetrofit = new Retrofit.Builder()
+                .baseUrl(components.getGame() + "/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)
                 .build();
 
-//        componentsHolder = new ComponentsHolder();
-//
-//        new ComponentsLocator()
-//                .holder(componentsHolder)
-//                .api(retrofit.create(YellowPagesAPI.class))
-//                .httpClient(httpClient)
-//                .start();
+
+        //Service playerService = componentsLocator.getPlayerService(local);
+        Retrofit playerServiceRetrofit = new Retrofit.Builder()
+                .baseUrl(components.getPlayer() + "/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(httpClient)
+                .build();
+
+        PlayerServiceFacade playerServiceFacade = new PlayerServiceFacade(playerServiceRetrofit.create(PlayersAPI.class), this);
+        playerServiceController = new PlayerServiceController(components.getPlayer(), playerServiceFacade, localServerPort);
+        playerServiceController.startListening();
+        playerServiceController.addCommandListener("TURN", (a) -> System.out.println("TURN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
 
         startForm = new StartForm(this);
-        searchForm = new SearchForm(this, retrofit);
-        createForm = new CreateForm(this, retrofit);
-        lobbyForm = new LobbyForm(this, retrofit);
-        gameForm = new GameForm();
+        searchForm = new SearchForm(this, GamesServiceRetrofit.create(GamesAPI.class), null);
+        createForm = new CreateForm(this, GamesServiceRetrofit.create(GamesAPI.class));
+        lobbyForm = new LobbyForm(this, GamesServiceRetrofit.create(GamesAPI.class));
+        gameForm = new GameFormSimple(this);
+        settingsForm = new SettingsForm(this, components);
     }
 
 
     public static void main(String[] args) {
 
-        new Client().run();
+        if (args.length > 0) {
+            new Client(Boolean.parseBoolean(args[0]), Integer.parseInt(args[1])).run();
+        } else {
+            new Client(false, Constants.LOCAL_SERVER_PORT).run();
+        }
     }
 
 
@@ -61,40 +87,52 @@ public class Client {
         frame.setSize(500, 500);
         frame.getContentPane().add(new StartForm(this).getPanel());
         frame.setVisible(true);
+
+        openGameForm(new Game(), new Player()); // test
     }
 
 
     public void openSearchForm() {
 
-        searchForm.refresh();
+        searchForm.willAppear();
         changeContentPane(searchForm.getPanel());
     }
 
 
     public void openCreateForm() {
 
+        createForm.willAppear();
         changeContentPane(createForm.getPanel());
     }
 
 
     public void openStartForm() {
 
+        startForm.willAppear();
         changeContentPane(startForm.getPanel());
+    }
+
+    public void openSettingsForm() {
+
+        settingsForm.willAppear();
+        changeContentPane(settingsForm.getPanel());
     }
 
 
     public void openLobbyForm(Game game, Player player) {
 
+
         lobbyForm.setGame(game);
         lobbyForm.setPlayer(player);
-        lobbyForm.refresh();
+        lobbyForm.willAppear();
         changeContentPane(lobbyForm.getPanel());
     }
 
 
-    public void openGameForm(Game game) {
+    public void openGameForm(Game game, Player player) {
 
         gameForm.setGame(game);
+        gameForm.setPlayer(player);
         changeContentPane(gameForm.getPanel());
     }
 
@@ -105,5 +143,12 @@ public class Client {
         frame.getContentPane().add(container);
         frame.getContentPane().revalidate();
         frame.getContentPane().repaint();
+    }
+
+    public void couldNotConnectToPlayerService(String s) {
+        JOptionPane.showMessageDialog(frame,
+                "Could not connect to the PlayerService.\nSee log for details.",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
 }

@@ -7,14 +7,13 @@ import de.hawhamburg.vs.wise15.superteam.client.model.Place;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 import de.hawhamburg.vs.wise15.superteam.client.worker.AddPlayerWorker;
 import de.hawhamburg.vs.wise15.superteam.client.worker.CreateGameWorker;
-import retrofit.Retrofit;
 
 import javax.swing.*;
 
 /**
  * Created by florian on 16.11.15.
  */
-public class CreateForm {
+public class CreateForm implements LifeCycle{
     private final Client client;
     private final GamesAPI gamesAPI;
     private JPanel panel;
@@ -23,15 +22,15 @@ public class CreateForm {
     private JButton backButton;
 
 
-    public CreateForm(Client client, Retrofit retrofit) {
+    public CreateForm(Client client, GamesAPI gamesAPI) {
 
-        gamesAPI = retrofit.create(GamesAPI.class);
+        this.gamesAPI = gamesAPI;
 
         this.client = client;
 
         backButton.addActionListener(e -> client.openStartForm());
         createGameButton.addActionListener(e -> {
-            CreateGameWorker createGameWorker = new CreateGameWorker(gamesAPI, this::gameCreated);
+            CreateGameWorker createGameWorker = new CreateGameWorker(gamesAPI, this::gameCreated, client.components);
             createGameWorker.execute();
         });
     }
@@ -50,7 +49,7 @@ public class CreateForm {
 
         //TODO create player
         String id = String.valueOf(Math.round(Math.random() * 1000));
-        Player player = new Player(id, textField1.getText(), "", new Place(""), 42);
+        Player player = new Player(id, textField1.getText(), client.playerServiceController.getUri(), new Place(""), 42, false);
 
         AddPlayerWorker addPlayerWorker = new AddPlayerWorker(gamesAPI, game, player, this::playerAdded);
         addPlayerWorker.execute();
@@ -78,4 +77,8 @@ public class CreateForm {
     }
 
 
+    @Override
+    public void willAppear() {
+
+    }
 }

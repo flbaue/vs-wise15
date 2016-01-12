@@ -1,10 +1,9 @@
 package haw.vs.superteam.gamesservice;
 
-import haw.vs.superteam.gamesservice.api.BoardsAPI;
+import haw.vs.superteam.gamesservice.api.BoardsAdapter;
+import haw.vs.superteam.gamesservice.api.PlayerAdapter;
 import haw.vs.superteam.gamesservice.model.*;
-import retrofit.Response;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,13 +18,16 @@ public class GameController {
     private static Logger logger = Utils.getLogger(GameController.class.getName());
 
     private static AtomicLong gameCounter = new AtomicLong(0);
+    private final String serviceURI;
+    private final PlayerAdapter playerAdapter;
+    private final BoardsAdapter boardsAdapter;
     private Set<Game> games = new HashSet<>();
-    private Components components;
-    private BoardsAPI boardsAPI;
 
-    public GameController(Components components, BoardsAPI boardsAPI) throws IOException {
-        this.components = components;
-        this.boardsAPI = boardsAPI;
+    public GameController(String serviceURI, PlayerAdapter playerAdapter, BoardsAdapter boardsAdapter) {
+
+        this.serviceURI = serviceURI;
+        this.playerAdapter = playerAdapter;
+        this.boardsAdapter = boardsAdapter;
     }
 
     public GameCollection getAll() {
@@ -34,35 +36,28 @@ public class GameController {
     }
 
 
-    public Game createNewGame() {
+    public Game createNewGame(Components components) {
 
-        Game game = new Game(String.valueOf(gameCounter.incrementAndGet()));
+        Game game = new Game(String.valueOf(gameCounter.incrementAndGet()), components);
         games.add(game);
 
-        game.setComponents(components);
-        game.setUri(components.getGame() + "/games/" + game.getGameid());
+        game.setUri(game.getComponents().getGame() + "/games/" + game.getGameid());
 
-        try {
-            Response<Board> response = boardsAPI.createBoard(game.getGameid()).execute();
-            if (response.isSuccess()) {
-                game.getComponents().setBoard(components.getBoard());
-            }
-        } catch (IOException e) {
+        Board board = boardsAdapter.createBoard(game);
+        if (board != null) {
+            return game;
+        } else {
             games.remove(game);
             return null;
         }
-
-        return game;
     }
 
 
     public Game getGame(String gameId) {
-        for (Game game : games) {
-            if (game.getGameid().equals(gameId)) {
-                return game;
-            }
-        }
-        return null;
+        return games.stream()
+                .filter(g -> g.getGameid().equals(gameId))
+                .findAny()
+                .orElse(null);
     }
 
 
@@ -75,17 +70,13 @@ public class GameController {
         Player player = new Player(playerId, playerName, playerURI);
         boolean playerAdded = game.addNewPlayer(player);
         if (playerAdded) {
-            try {
-                Response<Void> response = boardsAPI.addPlayer(game.getGameid(), player.getId(), player).execute();
-                if (response.isSuccess()) {
-                    logger.info("Player " + playerId + " added to board");
-                } else {
-                    logger.severe(response.toString());
-                    playerAdded = false;
-                }
-            } catch (IOException e) {
-                logger.severe(e.getMessage());
-                playerAdded = false;
+
+            if (boardsAdapter.addPlayer(game, player)) {
+                logger.info("Player " + playerId + " added to board");
+                return true;
+            } else {
+                logger.severe("Player could not be added to the board");
+                return false;
             }
         }
 
@@ -106,6 +97,12 @@ public class GameController {
         Player player = getPlayerFromGame(gameId, playerId);
         if (player != null) {
             player.setReady(!player.isReady());
+
+            Game game = getGame(gameId);
+            if (game.startGame()) {
+                playerAdapter.gameStart(game);
+                playerAdapter.turn(player);
+            }
         }
     }
 

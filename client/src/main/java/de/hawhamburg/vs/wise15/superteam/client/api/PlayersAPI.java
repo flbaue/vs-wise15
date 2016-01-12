@@ -1,7 +1,8 @@
 package de.hawhamburg.vs.wise15.superteam.client.api;
 
-import de.hawhamburg.vs.wise15.superteam.client.model.Player;
+import de.hawhamburg.vs.wise15.superteam.client.model.Client;
 import retrofit.Call;
+import retrofit.http.Body;
 import retrofit.http.POST;
 
 /**
@@ -11,7 +12,7 @@ public interface PlayersAPI {
 
     // TODO rest api?
 
-    @POST("players")
-    Call<Player> createPlayer();
+    @POST("player")
+    Call<Integer> connectPlayer(@Body Client client);
 
 }

@@ -19,15 +19,19 @@ public class ServiceLocator {
         this.servicesAPI = servicesAPI;
     }
 
-    public Service getBoardsService() throws IOException {
-        Response<ServiceCollection> serviceCollectionResponse = servicesAPI.getServiceCollection(Constants.BOARDS_SERVICE_NAME).execute();
-        ServiceCollection serviceCollection = serviceCollectionResponse.body();
-        String uri = serviceCollection.getServices().get(serviceCollection.getServices().size() - 1);
+    public Service getBoardsService(boolean local) throws IOException {
+        if (local) {
+            return new Service(Constants.BOARDS_SERVICE_NAME, "local", "boards", "http://192.168.99.100:4501");
+        } else {
+            Response<ServiceCollection> serviceCollectionResponse = servicesAPI.getServiceCollection(Constants.BOARDS_SERVICE_NAME).execute();
+            ServiceCollection serviceCollection = serviceCollectionResponse.body();
+            String uri = serviceCollection.getServices().get(serviceCollection.getServices().size() - 1);
 
-        int i = uri.lastIndexOf("/");
-        String id = uri.substring(i);
+            int i = uri.lastIndexOf("/");
+            String id = uri.substring(i);
 
-        Response<Service> serviceResponse = servicesAPI.getServiceById(id).execute();
-        return serviceResponse.body();
+            Response<Service> serviceResponse = servicesAPI.getServiceById(id).execute();
+            return serviceResponse.body();
+        }
     }
 }
