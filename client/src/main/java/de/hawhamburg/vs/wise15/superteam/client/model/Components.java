@@ -1,5 +1,10 @@
 package de.hawhamburg.vs.wise15.superteam.client.model;
 
+import de.hawhamburg.vs.wise15.superteam.client.api.ApiFactory;
+import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
+import de.hawhamburg.vs.wise15.superteam.client.api.PlayersAPI;
+import retrofit.GsonConverterFactory;
+import retrofit.Retrofit;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
@@ -7,6 +12,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  */
 public class Components {
     private String game;
+    private transient GamesAPI gamesAPI;
     private String dice;
     private String board;
     private String bank;
@@ -14,6 +20,8 @@ public class Components {
     private String decks;
     private String events;
     private transient String player;
+    private transient PlayersAPI playersAPI;
+    private transient ApiFactory apiFactory;
 
     public Components() {
 
@@ -32,19 +40,32 @@ public class Components {
         this.player = player;
     }
 
-    public Components(boolean local) {
+    public Components(boolean local, ApiFactory apiFactory) {
+        this.apiFactory = apiFactory;
         if (local) {
-            game = "http://192.168.99.100:4502";
+            setGame("http://192.168.99.100:4502");
+            setPlayer("http://192.168.99.100:4500");
             dice = "http://192.168.99.100:4503";
             board = "http://192.168.99.100:4501";
             bank = "http://192.168.99.100:4504";
             broker = "http://192.168.99.100:4505";
             decks = "";
             events = "";
-            player = "http://192.168.99.100:4500";
         } else {
             throw new NotImplementedException();
         }
+    }
+
+    public PlayersAPI getPlayersAPI() {
+        return playersAPI;
+    }
+
+    public GamesAPI getGamesAPI() {
+        return gamesAPI;
+    }
+
+    public void setApiFactory(ApiFactory apiFactory) {
+        this.apiFactory = apiFactory;
     }
 
     public String getPlayer() {
@@ -53,6 +74,7 @@ public class Components {
 
     public void setPlayer(String player) {
         this.player = player;
+        playersAPI = apiFactory.getPlayersAPI(this.player);
     }
 
     public String getGame() {
@@ -62,6 +84,7 @@ public class Components {
 
     public void setGame(String game) {
         this.game = game;
+        gamesAPI = apiFactory.getGamesAPI(this.game);
     }
 
     public String getDice() {
@@ -126,5 +149,10 @@ public class Components {
         broker = components.getBroker();
         decks = components.getDecks();
         events = components.getEvents();
+    }
+
+    @Override
+    public String toString() {
+        return "Components:\ngames_service: " + game;
     }
 }

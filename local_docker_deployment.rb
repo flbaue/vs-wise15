@@ -35,7 +35,7 @@ banks_service2 = Service.new("banks_service", "banks-all-1.0.jar", 4507, "supert
 broker_service = Service.new("brokers", "brokers-all-1.0.jar", 4505, "superteam/brokers-service", "BROKERSSERVICE")
 events_service = Service.new("events_service", "events_service-all-1.0.jar", 4506, "superteam/events-service", "EVENTSSERVICE")
 haproxy_service = Service.new("HAProxy","haproxy.cfg", 4599, "superteam/haproxy", "HAPROXY")
-#jail_service = Service.new("JailService", "JailService-all-1.0.jar", 4507, "superteam/jail-service", "JAILSERVICE")
+#jail_service = Service.new("JailService", "JailService-all-1.0.jar", 4508, "superteam/jail-service", "JAILSERVICE")
 #...
 
 failed = []

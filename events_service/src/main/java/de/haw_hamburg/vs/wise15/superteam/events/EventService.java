@@ -105,7 +105,7 @@ public class EventService {
         //System.out.println(json.toString());
         Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
                 .header("Content-Type", "application/json")
-                .body(json.toString()).asJson();
+                .body(json.toString()).asString();
 
     }
 

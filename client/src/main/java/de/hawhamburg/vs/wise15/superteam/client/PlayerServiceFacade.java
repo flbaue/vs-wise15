@@ -82,6 +82,7 @@ public class PlayerServiceFacade {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         }
         String line = reader.readLine();
+        System.out.println("Received Command. Raw: " + line);
         return gson.fromJson(line, Command.class);
     }
 }

@@ -3,6 +3,7 @@ package de.hawhamburg.vs.wise15.superteam.client.ui;
 import de.hawhamburg.vs.wise15.superteam.client.Client;
 import de.hawhamburg.vs.wise15.superteam.client.Utils;
 import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
+import de.hawhamburg.vs.wise15.superteam.client.model.Components;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 import de.hawhamburg.vs.wise15.superteam.client.model.PlayerCollection;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
 public class LobbyForm implements LifeCycle {
     private static final Logger log = Utils.getLogger(LobbyForm.class.getName());
     private final Client client;
-    private final GamesAPI gamesAPI;
+    private final Components components;
     private final Timer timer;
     private JPanel panel;
     private JList playerList;
@@ -31,18 +32,18 @@ public class LobbyForm implements LifeCycle {
     private SetPlayerReadyWorker setPlayerReadyWorker;
 
 
-    public LobbyForm(Client client, GamesAPI gamesAPI) {
+    public LobbyForm(Client client, Components components) {
         this.client = client;
 
-        this.gamesAPI = gamesAPI;
+        this.components = components;
 
         exitButton.addActionListener(e -> {
-            deletePlayerWorker = new DeletePlayerWorker(gamesAPI, game.getGameid(), player.getId(), this::leaveLobby);
+            deletePlayerWorker = new DeletePlayerWorker(components, game.getGameid(), player.getId(), this::leaveLobby);
             deletePlayerWorker.execute();
         });
 
         readyButton.addActionListener(e -> {
-            setPlayerReadyWorker = new SetPlayerReadyWorker(gamesAPI, game, player, this::playerReadyCallback);
+            setPlayerReadyWorker = new SetPlayerReadyWorker(components, game, player, this::playerReadyCallback);
             setPlayerReadyWorker.execute();
         });
 
@@ -68,7 +69,7 @@ public class LobbyForm implements LifeCycle {
     }
 
     private void refresh() {
-        FetchPlayersWorker fetchPlayersWorker = new FetchPlayersWorker(gamesAPI, game, this::playersReceived);
+        FetchPlayersWorker fetchPlayersWorker = new FetchPlayersWorker(components, game, this::playersReceived);
         fetchPlayersWorker.execute();
     }
 

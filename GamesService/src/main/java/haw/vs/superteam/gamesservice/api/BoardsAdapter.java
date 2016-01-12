@@ -15,7 +15,7 @@ import java.io.IOException;
  */
 public class BoardsAdapter {
 
-    public Board createBoard(Game game) {
+    public boolean createBoard(Game game) {
 
         BoardsAPI boardsAPI = getBoardsAPI(game.getComponents().getBoard());
         Response<Board> response = null;
@@ -25,11 +25,7 @@ public class BoardsAdapter {
             e.printStackTrace();
 
         }
-        if (response != null && response.isSuccess()) {
-            return response.body();
-        } else {
-            return null;
-        }
+        return response != null && response.isSuccess();
     }
 
 

@@ -2,6 +2,7 @@ package de.hawhamburg.vs.wise15.superteam.client.worker;
 
 import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.callback.CallbackABC;
+import de.hawhamburg.vs.wise15.superteam.client.model.Components;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 import retrofit.Response;
@@ -15,15 +16,15 @@ import java.util.concurrent.ExecutionException;
 public class AddPlayerWorker extends SwingWorker<Boolean, Void> {
 
 
-    private final GamesAPI gamesAPI;
+    private final Components components;
     private final Game game;
     private final Player player;
     private final CallbackABC<Game, Player, Exception> callback;
     private Exception e;
 
-    public AddPlayerWorker(GamesAPI gamesAPI, Game game, Player player, CallbackABC<Game, Player, Exception> callback) {
+    public AddPlayerWorker(Components components, Game game, Player player, CallbackABC<Game, Player, Exception> callback) {
 
-        this.gamesAPI = gamesAPI;
+        this.components = components;
         this.game = game;
         this.player = player;
         this.callback = callback;
@@ -32,7 +33,7 @@ public class AddPlayerWorker extends SwingWorker<Boolean, Void> {
     @Override
     protected Boolean doInBackground() throws Exception {
         try {
-            Response<Void> response = gamesAPI.joinPlayer(
+            Response<Void> response = components.getGamesAPI().joinPlayer(
                     game.getGameid(),
                     player.getId(),
                     player.getName(),
