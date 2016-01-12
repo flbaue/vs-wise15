@@ -2,6 +2,7 @@ package de.haw_hamburg.vs.wise15.superteam.boards;
 
 import com.google.gson.Gson;
 import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
