@@ -105,7 +105,7 @@ public class EventService {
         //System.out.println(json.toString());
         Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
                 .header("Content-Type", "application/json")
-                .body(json.toString()).asJson();
+                .body(json.toString()).asString();
 
     }
 
@@ -141,7 +141,7 @@ public class EventService {
                         String body = gson.toJson(new Event[]{event});
                         Unirest.post(s.getUri())
                                 .header("Content-Type", "application/json")
-                                .body(body).asJson();
+                                .body(body).asString();
                     }
                 }
 
@@ -154,7 +154,7 @@ public class EventService {
                         String body = gson.toJson(ary);
                         Unirest.post(s.getUri())
                                 .header("Content-Type", "application/json")
-                                .body(body).asJson();
+                                .body(body).asString();
                     }
                 }
             }
