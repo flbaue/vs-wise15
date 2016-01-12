@@ -14,13 +14,11 @@ import java.util.concurrent.ExecutionException;
  */
 public class CreateGameWorker extends SwingWorker<Game, Void> {
 
-    private final GamesAPI gamesAPI;
     private final CallbackAB<Game, Exception> callback;
     private final Components components;
     private Exception e;
 
-    public CreateGameWorker(GamesAPI gamesAPI, CallbackAB<Game, Exception> callback, Components components) {
-        this.gamesAPI = gamesAPI;
+    public CreateGameWorker(CallbackAB<Game, Exception> callback, Components components) {
         this.callback = callback;
         this.components = components;
     }
@@ -30,7 +28,7 @@ public class CreateGameWorker extends SwingWorker<Game, Void> {
     protected Game doInBackground() {
         Game game = null;
         try {
-            Response<Game> response = gamesAPI.createGame(new Game(components)).execute();
+            Response<Game> response = components.getGamesAPI().createGame(new Game(components)).execute();
             if (response.isSuccess()) {
                 game = response.body();
             }

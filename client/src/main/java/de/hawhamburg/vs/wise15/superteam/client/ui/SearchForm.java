@@ -17,8 +17,7 @@ import java.io.IOException;
 public class SearchForm implements LifeCycle{
 
     private final Client client;
-    private final GamesAPI gamesAPI;
-    private final PlayersAPI playersAPI;
+    private final Components components;
 
     private JPanel panel;
     private JList<Game> gameList;
@@ -29,18 +28,17 @@ public class SearchForm implements LifeCycle{
 
     private Player player;
 
-    public SearchForm(Client client, GamesAPI gamesAPI, PlayersAPI playersAPI) {
+    public SearchForm(Client client, Components components) {
         this.client = client;
 
-        this.gamesAPI = gamesAPI;
-        this.playersAPI = playersAPI;
+        this.components = components;
 
         ListSelectionModel selectionModel = gameList.getSelectionModel();
         selectionModel.addListSelectionListener(event -> {
             Game selectedGame = gameList.getSelectedValue();
             if (selectedGame != null) {
                 FetchPlayersWorker fetchPlayersWorkerWorker = new FetchPlayersWorker(
-                        this.gamesAPI,
+                        components,
                         selectedGame,
                         this::playersReceived);
 
@@ -82,7 +80,7 @@ public class SearchForm implements LifeCycle{
 
 
         try {
-            Response<Void> joinResponse = gamesAPI.joinPlayer(
+            Response<Void> joinResponse = components.getGamesAPI().joinPlayer(
                     game.getGameid(),
                     player.getId(),
                     playerNameTxt.getText(),
@@ -104,7 +102,7 @@ public class SearchForm implements LifeCycle{
 
     private void fetchGames() {
 
-        FetchGamesWorker fetchGamesWorker = new FetchGamesWorker(gamesAPI, this::gamesReceived);
+        FetchGamesWorker fetchGamesWorker = new FetchGamesWorker(components, this::gamesReceived);
         fetchGamesWorker.execute();
     }
 

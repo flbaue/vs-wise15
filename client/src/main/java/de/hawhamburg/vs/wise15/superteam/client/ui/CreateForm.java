@@ -2,6 +2,7 @@ package de.hawhamburg.vs.wise15.superteam.client.ui;
 
 import de.hawhamburg.vs.wise15.superteam.client.Client;
 import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
+import de.hawhamburg.vs.wise15.superteam.client.model.Components;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.model.Place;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
@@ -15,22 +16,23 @@ import javax.swing.*;
  */
 public class CreateForm implements LifeCycle{
     private final Client client;
-    private final GamesAPI gamesAPI;
+    private final Components components;
     private JPanel panel;
     private JTextField textField1;
     private JButton createGameButton;
     private JButton backButton;
 
 
-    public CreateForm(Client client, GamesAPI gamesAPI) {
+    public CreateForm(Client client, Components components) {
 
-        this.gamesAPI = gamesAPI;
+        this.components = components;
 
         this.client = client;
 
         backButton.addActionListener(e -> client.openStartForm());
         createGameButton.addActionListener(e -> {
-            CreateGameWorker createGameWorker = new CreateGameWorker(gamesAPI, this::gameCreated, client.components);
+            System.out.println("Creating game at " + client.components.getGame());
+            CreateGameWorker createGameWorker = new CreateGameWorker(this::gameCreated, client.components);
             createGameWorker.execute();
         });
     }
@@ -51,7 +53,7 @@ public class CreateForm implements LifeCycle{
         String id = String.valueOf(Math.round(Math.random() * 1000));
         Player player = new Player(id, textField1.getText(), client.playerServiceController.getUri(), new Place(""), 42, false);
 
-        AddPlayerWorker addPlayerWorker = new AddPlayerWorker(gamesAPI, game, player, this::playerAdded);
+        AddPlayerWorker addPlayerWorker = new AddPlayerWorker(components, game, player, this::playerAdded);
         addPlayerWorker.execute();
     }
 

@@ -2,6 +2,7 @@ package de.hawhamburg.vs.wise15.superteam.client.worker;
 
 import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.callback.CallbackAB;
+import de.hawhamburg.vs.wise15.superteam.client.model.Components;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.model.PlayerCollection;
 import retrofit.Response;
@@ -15,17 +16,17 @@ import java.util.concurrent.ExecutionException;
  */
 public class FetchPlayersWorker extends SwingWorker<PlayerCollection, Void> {
 
-    private final GamesAPI gamesAPI;
+    private final Components components;
     private final Game game;
     private final CallbackAB<PlayerCollection, Exception> callback;
     private Exception e;
 
-    public FetchPlayersWorker(GamesAPI gamesAPI, Game game, CallbackAB<PlayerCollection, Exception> callback) {
-        Objects.requireNonNull(gamesAPI);
+    public FetchPlayersWorker(Components components, Game game, CallbackAB<PlayerCollection, Exception> callback) {
+        Objects.requireNonNull(components);
         Objects.requireNonNull(game);
         Objects.requireNonNull(callback);
 
-        this.gamesAPI = gamesAPI;
+        this.components = components;
         this.game = game;
         this.callback = callback;
     }
@@ -37,7 +38,7 @@ public class FetchPlayersWorker extends SwingWorker<PlayerCollection, Void> {
         Game game = null;
 
         try {
-            Response<Game> response = gamesAPI.byId(this.game.getGameid()).execute();
+            Response<Game> response = components.getGamesAPI().byId(this.game.getGameid()).execute();
 
             if (response.isSuccess()) {
                 game = response.body();
