@@ -13,8 +13,8 @@ repository_root = Dir.pwd
 services = {
   "docker_0" => {folder: "DiceService", jar: "DiceService-all-1.0.jar"},
   "docker_1" => {folder: "GamesService", jar: "GamesService-all-1.0.jar"},
-  "docker_2" => {folder: "banks_service", jar: "banks-all-1.0-SNAPSHOT.jar"},
-  "docker_3" => {folder: "banks_service", jar: "banks-all-1.0-SNAPSHOT.jar"},
+  "docker_2" => {folder: "banks_service", jar: "banks-all-1.0.jar"},
+  "docker_3" => {folder: "banks_service", jar: "banks-all-1.0.jar"},
   "docker_4" => {folder: "boards_service", jar: "boards_service-all-1.0.jar"},
   "docker_5" => {folder: "events_service", jar: "events_service-all-1.0.jar"}
 }
@@ -60,7 +60,7 @@ services.each_pair do |docker_folder, properties|
   dest_path = "#{deployment_root}/#{deployment_path}"
 
   Dir.chdir deployment_root
-  FileUtils.rm_rf(deployment_path)
+  FileUtils.rm_rf(docker_folder)
   FileUtils.mkdir_p(deployment_path)
   FileUtils.cp(source_path, "./#{deployment_path}/vsp_aaz532.jar")
 
