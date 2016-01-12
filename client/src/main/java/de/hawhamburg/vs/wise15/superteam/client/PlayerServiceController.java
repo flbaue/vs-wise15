@@ -24,6 +24,7 @@ public class PlayerServiceController {
         this.facade = playerServiceFacade;
 
         playerId = playerServiceFacade.connectWithPlayerService(localServerPort);
+        System.out.println("PlayerId: " + playerId);
     }
 
     public void addCommandListener(String command, CallbackA<String> listener) {

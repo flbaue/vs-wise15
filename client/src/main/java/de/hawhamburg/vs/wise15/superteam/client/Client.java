@@ -61,7 +61,9 @@ public class Client {
         PlayerServiceFacade playerServiceFacade = new PlayerServiceFacade(components.getPlayersAPI(), this);
         playerServiceController = new PlayerServiceController(components.getPlayer(), playerServiceFacade, localServerPort);
         playerServiceController.startListening();
+
         playerServiceController.addCommandListener("TURN", (a) -> System.out.println("TURN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
+        playerServiceController.addCommandListener("EVENTS", (a) -> System.out.println("EVENTS: " + a));
 
         startForm = new StartForm(this);
         searchForm = new SearchForm(this, components);

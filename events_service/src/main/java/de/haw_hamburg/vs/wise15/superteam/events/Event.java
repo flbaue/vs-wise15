@@ -31,12 +31,26 @@ public class Event {
     }
 
     public boolean matchesEvent(Subscription s) {
-        return type.matches(s.getEvent().getType())
-                && name.matches(s.getEvent().getName())
-                && reason.matches(s.getEvent().getReason())
-                && resource.matches(s.getEvent().getResource())
-                && player.matchesPlayer(s.getEvent().getPlayer());
 
+        boolean result = false;
+        Event subscriptionMask = s.getEvent();
+
+        if (subscriptionMask != null) {
+
+            if (subscriptionMask.type != null && type != null && type.matches(subscriptionMask.type)) {
+                result = true;
+            } else if (subscriptionMask.name != null && name != null && name.matches(subscriptionMask.name)) {
+                result = true;
+            } else if (subscriptionMask.reason != null && reason != null && reason.matches(subscriptionMask.reason)) {
+                result = true;
+            } else if (subscriptionMask.resource != null && resource != null && resource.matches(subscriptionMask.resource)) {
+                result = true;
+            } else {
+                result = subscriptionMask.player != null && player != null && player.matchesPlayer(subscriptionMask.player);
+            }
+        }
+
+        return result;
     }
 
     public String getId() {

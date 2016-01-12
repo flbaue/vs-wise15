@@ -96,6 +96,7 @@ public class PlayerService {
 
     private Object playerEvent(Request request, Response response) {
         int playerId = Integer.parseInt(request.params("playerId"));
+        System.out.println("Received event raw: " + request.body());
         Event[] events = gson.fromJson(request.body(), Event[].class);
         playerController.playerEvent(playerId, events);
 
