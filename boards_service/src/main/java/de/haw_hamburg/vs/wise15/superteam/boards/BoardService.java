@@ -45,7 +45,7 @@ public class BoardService {
     
     public BoardService() {
     	
-    	//registreService();
+    	registreService();
     }
 
     private void run() {
@@ -320,36 +320,36 @@ public class BoardService {
 	}
 	
 	private void createBroker(String gameid) {
-		/*try {
-			HttpResponse<JsonNode> jsonResponse = Unirest.put("https://vs-docker.informatik.haw-hamburg.de:port/brokers/{gameid}")
+		try {
+			HttpResponse<JsonNode> jsonResponse = Unirest.put("https://vs-docker.informatik.haw-hamburg.de/ports/15326/broker/{gameid}")
 					.routeParam("gameid", gameid)
 					.asJson();
 		} catch (UnirestException e) {
 			e.printStackTrace();
-		}*/
+		}
 	}
 	
 	private void registerProperties(String gameid, int placeid) {
-		/*try {
-			HttpResponse<JsonNode> jsonResponse = Unirest.put("https://vs-docker.informatik.haw-hamburg.de:port/brokers/{gameid}/places/{placeid}")
+		try {
+			HttpResponse<JsonNode> jsonResponse = Unirest.put("https://vs-docker.informatik.haw-hamburg.de/ports/15326/broker/{gameid}/places/{placeid}")
 					.routeParam("gameid", gameid)
 					.routeParam("placeid", String.valueOf(placeid))
 					.asJson();
 		} catch (UnirestException e) {
 			e.printStackTrace();
-		}*/
+		}
 	}
 	
 	private void registerVisitor(String gameid, int placeid, String playerid)  {
-		/*try {
-			HttpResponse<JsonNode> jsonResponse = Unirest.post("https://vs-docker.informatik.haw-hamburg.de:port/brokers/{gameid}/places/{placeid}/visit/{placerid}")
+		try {
+			HttpResponse<JsonNode> jsonResponse = Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/15326/broker/{gameid}/places/{placeid}/visit/{placerid}")
 					.routeParam("gameid", gameid)
 					.routeParam("placeid", String.valueOf(placeid))
 					.routeParam("playerid", playerid)
 					.asJson();
 		} catch (UnirestException e) {
 			e.printStackTrace();
-		}*/
+		}
 		
 	}
 	
