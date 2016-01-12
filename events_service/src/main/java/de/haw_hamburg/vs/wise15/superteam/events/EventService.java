@@ -154,7 +154,7 @@ public class EventService {
                         String body = gson.toJson(ary);
                         Unirest.post(s.getUri())
                                 .header("Content-Type", "application/json")
-                                .body(body).asString();
+                                .body(body).asJson();
                     }
                 }
             }
