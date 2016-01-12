@@ -43,10 +43,10 @@ public class GameController {
 
         game.setUri(game.getComponents().getGame() + "/games/" + game.getGameid());
 
-        Board board = boardsAdapter.createBoard(game);
-        if (board != null) {
+        if (boardsAdapter.createBoard(game)) {
             return game;
         } else {
+            logger.severe("Could not create board for gameid " + game.getGameid() + " at " + components.getBoard());
             games.remove(game);
             return null;
         }

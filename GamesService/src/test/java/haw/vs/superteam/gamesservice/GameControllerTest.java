@@ -25,7 +25,7 @@ public class GameControllerTest {
     public void setUp() throws Exception {
         components = new Components();
         boardsAdapter = mock(BoardsAdapter.class);
-        when(boardsAdapter.createBoard(any(Game.class))).thenReturn(new Board());
+        when(boardsAdapter.createBoard(any(Game.class))).thenReturn(true);
         when(boardsAdapter.addPlayer(any(Game.class), any(Player.class))).thenReturn(true);
         playerAdapter = mock(PlayerAdapter.class);
         controller = new GameController("test-uri", playerAdapter, boardsAdapter);
