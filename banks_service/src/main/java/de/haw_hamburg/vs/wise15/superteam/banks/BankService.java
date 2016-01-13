@@ -125,9 +125,9 @@ public class BankService {
             Unirest.setHttpClient(httpclient);
             //sout
             System.out.println(json.toString());
-            HttpResponse<JsonNode> jsonNodeHttpResponse = Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
+            HttpResponse<String> jsonNodeHttpResponse = Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
                     .header("Content-Type", "application/json")
-                    .body(json.toString()).asJson();
+                    .body(json.toString()).asString();
             System.out.println(jsonNodeHttpResponse.getStatus());
         } catch (UnirestException e) {
             e.printStackTrace();
