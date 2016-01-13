@@ -1,15 +1,12 @@
 package de.hawhamburg.vs.wise15.superteam.client;
 
-import com.squareup.okhttp.OkHttpClient;
 import de.hawhamburg.vs.wise15.superteam.client.api.ApiFactory;
-import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
-import de.hawhamburg.vs.wise15.superteam.client.api.PlayersAPI;
+import de.hawhamburg.vs.wise15.superteam.client.api.DiceAdapter;
+import de.hawhamburg.vs.wise15.superteam.client.api.EventsAdapter;
 import de.hawhamburg.vs.wise15.superteam.client.model.Components;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
 import de.hawhamburg.vs.wise15.superteam.client.model.Player;
 import de.hawhamburg.vs.wise15.superteam.client.ui.*;
-import retrofit.GsonConverterFactory;
-import retrofit.Retrofit;
 
 import javax.swing.*;
 import java.awt.*;
@@ -62,14 +59,13 @@ public class Client {
         playerServiceController = new PlayerServiceController(components.getPlayer(), playerServiceFacade, localServerPort);
         playerServiceController.startListening();
 
-        playerServiceController.addCommandListener("TURN", (a) -> System.out.println("TURN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
-        playerServiceController.addCommandListener("EVENTS", (a) -> System.out.println("EVENTS: " + a));
+        //playerServiceController.addCommandListener("EVENTS", (a) -> System.out.println("EVENTS: " + a)); // subscription!!!
 
         startForm = new StartForm(this);
         searchForm = new SearchForm(this, components);
         createForm = new CreateForm(this, components);
-        lobbyForm = new LobbyForm(this, components);
-        gameForm = new GameFormSimple(this);
+        lobbyForm = new LobbyForm(this, components, new EventsAdapter());
+        gameForm = new GameFormSimple(this, new DiceAdapter(), new ApiFactory(Utils.getUnsafeOkHttpClient()));
         settingsForm = new SettingsForm(this, components);
 
         System.out.println(components);
@@ -138,6 +134,7 @@ public class Client {
 
         gameForm.setGame(game);
         gameForm.setPlayer(player);
+        gameForm.willAppear();
         changeContentPane(gameForm.getPanel());
     }
 
@@ -155,5 +152,12 @@ public class Client {
                 "Could not connect to the PlayerService.\nSee log for details.",
                 "Error",
                 JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void showInfoDialog(String text) {
+        JOptionPane.showMessageDialog(frame,
+                text,
+                "Info",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 }

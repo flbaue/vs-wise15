@@ -124,7 +124,8 @@ public class EventService {
 
     //post http://localhost:4567/events?gameId event in body
     private Object createEvents(Request request, Response response) throws Exception {
-        String gameId = request.queryString();
+        System.out.println("Received event raw: " + request.body() + " with gameId: " + request.queryString());
+        String gameId = request.queryParams("gameId");
         List<Event> ary;
         try {
             Event event = gson.fromJson(request.body(), Event.class);
@@ -139,9 +140,10 @@ public class EventService {
                     if (event.matchesEvent(s)) {
                         //post(uri von subscroption und event in array von body)
                         String body = gson.toJson(new Event[]{event});
+                        System.out.println("Sending event to " + s.getUri());
                         Unirest.post(s.getUri())
                                 .header("Content-Type", "application/json")
-                                .body(body).asJson();
+                                .body(body).asString();
                     }
                 }
 
@@ -152,14 +154,16 @@ public class EventService {
                 for (Subscription s : subsList) {
                     if (event.matchesEvent(s)) {
                         String body = gson.toJson(ary);
+                        System.out.println("Sending event to " + s.getUri());
                         Unirest.post(s.getUri())
                                 .header("Content-Type", "application/json")
-                                .body(body).asJson();
+                                .body(body).asString();
                     }
                 }
             }
             response.status(201);
-            return "event by id: " + event.getId();
+            response.header("Location","/events/" + event.getId());
+            return "";
 
         } catch (JsonSyntaxException e) {
             return "JsonSyntaxException bei post/events";

@@ -2,16 +2,14 @@ package de.hawhamburg.vs.wise15.superteam.client.ui;
 
 import de.hawhamburg.vs.wise15.superteam.client.Client;
 import de.hawhamburg.vs.wise15.superteam.client.Utils;
-import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
-import de.hawhamburg.vs.wise15.superteam.client.model.Components;
-import de.hawhamburg.vs.wise15.superteam.client.model.Game;
-import de.hawhamburg.vs.wise15.superteam.client.model.Player;
-import de.hawhamburg.vs.wise15.superteam.client.model.PlayerCollection;
+import de.hawhamburg.vs.wise15.superteam.client.api.EventsAdapter;
+import de.hawhamburg.vs.wise15.superteam.client.model.*;
 import de.hawhamburg.vs.wise15.superteam.client.worker.DeletePlayerWorker;
 import de.hawhamburg.vs.wise15.superteam.client.worker.FetchPlayersWorker;
 import de.hawhamburg.vs.wise15.superteam.client.worker.SetPlayerReadyWorker;
 
 import javax.swing.*;
+import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
@@ -21,6 +19,7 @@ public class LobbyForm implements LifeCycle {
     private static final Logger log = Utils.getLogger(LobbyForm.class.getName());
     private final Client client;
     private final Components components;
+    private final EventsAdapter eventsAdapter;
     private final Timer timer;
     private JPanel panel;
     private JList playerList;
@@ -32,10 +31,11 @@ public class LobbyForm implements LifeCycle {
     private SetPlayerReadyWorker setPlayerReadyWorker;
 
 
-    public LobbyForm(Client client, Components components) {
+    public LobbyForm(Client client, Components components, EventsAdapter eventsAdapter) {
         this.client = client;
 
         this.components = components;
+        this.eventsAdapter = eventsAdapter;
 
         exitButton.addActionListener(e -> {
             deletePlayerWorker = new DeletePlayerWorker(components, game.getGameid(), player.getId(), this::leaveLobby);
@@ -49,12 +49,14 @@ public class LobbyForm implements LifeCycle {
 
         timer = new Timer(2000, e -> refresh()); //TODO: game service should send event to player
 
-        client.playerServiceController.addCommandListener("GAME_STARTED", e -> gameStarted());
+        client.playerServiceController.addCommandListener("EVENTS", e -> gameStarted(e));
     }
 
-    private void gameStarted() {
-        timer.stop();
-        client.openGameForm(game, player);
+    private void gameStarted(String e) {
+        if (e.contains("GAME_START")) {
+            timer.stop();
+            client.openGameForm(game, player);
+        }
     }
 
     private void playerReadyCallback(Boolean playerReady, Exception e) {
@@ -103,6 +105,14 @@ public class LobbyForm implements LifeCycle {
 
     public void setGame(Game game) {
         this.game = game;
+        Event event = new Event(null, "GAME_START", null, null, null);
+        Subscription subscription = new Subscription(game.getGameid(), client.playerServiceController.getUri() + "/event", event);
+
+        try {
+            eventsAdapter.createSubscription(subscription, game.getComponents().getEvents());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public Player getPlayer() {

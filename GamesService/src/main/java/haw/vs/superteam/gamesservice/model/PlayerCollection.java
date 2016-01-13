@@ -26,7 +26,7 @@ public class PlayerCollection {
             return false;
         } else {
             players.add(player);
-            int position = players.indexOf(player);
+            int position = 0;
             player.setPosition(position);
             return true;
         }

@@ -1,9 +1,11 @@
 package haw.vs.superteam.gamesservice;
 
 import haw.vs.superteam.gamesservice.api.BoardsAdapter;
+import haw.vs.superteam.gamesservice.api.EventsAdapter;
 import haw.vs.superteam.gamesservice.api.PlayerAdapter;
 import haw.vs.superteam.gamesservice.model.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,13 +23,15 @@ public class GameController {
     private final String serviceURI;
     private final PlayerAdapter playerAdapter;
     private final BoardsAdapter boardsAdapter;
+    private final EventsAdapter eventsAdapter;
     private Set<Game> games = new HashSet<>();
 
-    public GameController(String serviceURI, PlayerAdapter playerAdapter, BoardsAdapter boardsAdapter) {
+    public GameController(String serviceURI, PlayerAdapter playerAdapter, BoardsAdapter boardsAdapter, EventsAdapter eventsAdapter) {
 
         this.serviceURI = serviceURI;
         this.playerAdapter = playerAdapter;
         this.boardsAdapter = boardsAdapter;
+        this.eventsAdapter = eventsAdapter;
     }
 
     public GameCollection getAll() {
@@ -100,8 +104,14 @@ public class GameController {
 
             Game game = getGame(gameId);
             if (game.startGame()) {
-                playerAdapter.gameStart(game);
-                playerAdapter.turn(player);
+                Event event = new Event();
+                event.setName("GAME_START");
+                try {
+                    eventsAdapter.sendEvent(game.getGameid(), event, game.getComponents().getEvents());
+                    playerAdapter.turn(player);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

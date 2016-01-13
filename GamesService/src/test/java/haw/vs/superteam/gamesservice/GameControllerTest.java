@@ -1,8 +1,12 @@
 package haw.vs.superteam.gamesservice;
 
 import haw.vs.superteam.gamesservice.api.BoardsAdapter;
+import haw.vs.superteam.gamesservice.api.EventsAdapter;
 import haw.vs.superteam.gamesservice.api.PlayerAdapter;
-import haw.vs.superteam.gamesservice.model.*;
+import haw.vs.superteam.gamesservice.model.Components;
+import haw.vs.superteam.gamesservice.model.Game;
+import haw.vs.superteam.gamesservice.model.MutexStatus;
+import haw.vs.superteam.gamesservice.model.Player;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +24,7 @@ public class GameControllerTest {
     private Components components;
     private PlayerAdapter playerAdapter;
     private BoardsAdapter boardsAdapter;
+    private EventsAdapter eventsAdapter;
 
     @Before
     public void setUp() throws Exception {
@@ -28,7 +33,8 @@ public class GameControllerTest {
         when(boardsAdapter.createBoard(any(Game.class))).thenReturn(true);
         when(boardsAdapter.addPlayer(any(Game.class), any(Player.class))).thenReturn(true);
         playerAdapter = mock(PlayerAdapter.class);
-        controller = new GameController("test-uri", playerAdapter, boardsAdapter);
+        eventsAdapter = mock(EventsAdapter.class);
+        controller = new GameController("test-uri", playerAdapter, boardsAdapter, eventsAdapter);
     }
 
     @After
@@ -119,8 +125,9 @@ public class GameControllerTest {
         assertTrue(ready2);
         assertTrue(game.isStarted());
 
-        verify(playerAdapter, times(1)).gameStart(game);
+        verify(eventsAdapter, times(1)).sendEvent(matches(game.getGameid()), any(), any());
         assertNotEquals(ready1, ready2);
+        assertEquals(game.getCurrentPlayer().getId(), playerID);
     }
 
     @Test

@@ -20,7 +20,7 @@ public class BoardsAdapter {
         BoardsAPI boardsAPI = getBoardsAPI(game.getComponents().getBoard());
         Response<Board> response = null;
         try {
-            response = boardsAPI.createBoard(game.getGameid()).execute();
+            response = boardsAPI.createBoard(game.getGameid(), game.getComponents()).execute();
         } catch (IOException e) {
             e.printStackTrace();
 

@@ -2,6 +2,7 @@ package haw.vs.superteam.gamesservice;
 
 import com.google.gson.Gson;
 import haw.vs.superteam.gamesservice.api.BoardsAdapter;
+import haw.vs.superteam.gamesservice.api.EventsAdapter;
 import haw.vs.superteam.gamesservice.api.PlayerAdapter;
 import haw.vs.superteam.gamesservice.api.ServicesAPI;
 import haw.vs.superteam.gamesservice.model.*;
@@ -55,7 +56,7 @@ public class GameService {
                 .build();
 
         servicesAPI = retrofit.create(ServicesAPI.class);
-        gameController = new GameController(serviceURI, new PlayerAdapter(), new BoardsAdapter());
+        gameController = new GameController(serviceURI, new PlayerAdapter(), new BoardsAdapter(), new EventsAdapter());
     }
 
     public static void main(String[] args) throws IOException {
@@ -81,6 +82,8 @@ public class GameService {
 
         get("/games/:gameId/players", this::getPlayersFromGame, jsonTransformer);
 
+        get("/games/:gameId/players/current", this::getCurrentPlayer, jsonTransformer);
+
         get("/games/:gameId/players/:playerId", this::getPlayerFromGame, jsonTransformer);
         put("/games/:gameId/players/:playerId", this::addPlayerToGame, jsonTransformer);
         delete("/games/:gameId/players/:playerId", this::removePlayerFromGame, jsonTransformer);
@@ -88,7 +91,7 @@ public class GameService {
         get("/games/:gameId/players/:playerId/ready", this::isPlayerReady);
         put("/games/:gameId/players/:playerId/ready", this::togglePlayerReady, jsonTransformer);
 
-        get("/games/:gameId/players/current", this::getCurrentPlayer, jsonTransformer);
+
 
         get("/games/:gameId/players/turn", this::getPlayerWithMutex, jsonTransformer);
         put("/games/:gameId/players/turn", this::setMutext, jsonTransformer);

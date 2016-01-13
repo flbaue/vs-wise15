@@ -1,10 +1,9 @@
 package de.hawhamburg.vs.wise15.superteam.client.model;
 
+import de.hawhamburg.vs.wise15.superteam.client.Utils;
 import de.hawhamburg.vs.wise15.superteam.client.api.ApiFactory;
 import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.api.PlayersAPI;
-import retrofit.GsonConverterFactory;
-import retrofit.Retrofit;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
@@ -24,12 +23,12 @@ public class Components {
     private transient ApiFactory apiFactory;
 
     public Components() {
-
+        apiFactory = new ApiFactory(Utils.getUnsafeOkHttpClient());
     }
 
 
     public Components(String game, String dice, String board, String bank, String broker, String decks, String events, String player) {
-
+        apiFactory = new ApiFactory(Utils.getUnsafeOkHttpClient());
         this.game = game;
         this.dice = dice;
         this.board = board;
@@ -50,7 +49,7 @@ public class Components {
             bank = "http://192.168.99.100:4504";
             broker = "http://192.168.99.100:4505";
             decks = "";
-            events = "";
+            events = "http://192.168.99.100:4506";
         } else {
             throw new NotImplementedException();
         }
@@ -61,6 +60,9 @@ public class Components {
     }
 
     public GamesAPI getGamesAPI() {
+        if (gamesAPI == null) {
+            setGame(getGame());
+        }
         return gamesAPI;
     }
 

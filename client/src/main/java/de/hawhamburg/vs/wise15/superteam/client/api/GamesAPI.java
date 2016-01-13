@@ -114,7 +114,7 @@ public interface GamesAPI {
      * @param gameId of the game.
      * @return {@link Player}
      */
-    @GET("games/{gameid}/players/current")
+    @GET("/games/{gameId}/players/current")
     Call<Player> currentPlayer(@Path("gameId") String gameId);
 
 

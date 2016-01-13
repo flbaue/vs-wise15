@@ -1,6 +1,7 @@
 package haw.vs.superteam.gamesservice.api;
 
 import haw.vs.superteam.gamesservice.model.Board;
+import haw.vs.superteam.gamesservice.model.Components;
 import haw.vs.superteam.gamesservice.model.Player;
 import retrofit.Call;
 import retrofit.http.Body;
@@ -13,7 +14,7 @@ import retrofit.http.Path;
 public interface BoardsAPI {
 
     @PUT("boards/{gameId}")
-    Call<Board> createBoard(@Path("gameId") String gameId);
+    Call<Board> createBoard(@Path("gameId") String gameId, @Body Components components);
 
     @PUT("boards/{gameId}/players/{playerId}")
     Call<Void> addPlayer(@Path("gameId") String gameId, @Path("playerId") String playerId, @Body Player player);

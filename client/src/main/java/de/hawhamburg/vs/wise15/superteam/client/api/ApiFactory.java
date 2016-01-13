@@ -16,29 +16,42 @@ public class ApiFactory {
         this.httpClient = httpClient;
     }
 
-    public GamesAPI getGamesAPI(String uri) {
-        if (!uri.endsWith("/")) {
-            uri += "/";
+    public GamesAPI getGamesAPI(String baseURI) {
+        if (!baseURI.endsWith("/")) {
+            baseURI += "/";
         }
 
         Retrofit GamesServiceRetrofit = new Retrofit.Builder()
-                .baseUrl(uri)
+                .baseUrl(baseURI)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)
                 .build();
         return GamesServiceRetrofit.create(GamesAPI.class);
     }
 
-    public PlayersAPI getPlayersAPI(String uri) {
-        if (!uri.endsWith("/")) {
-            uri += "/";
+    public PlayersAPI getPlayersAPI(String baseURI) {
+        if (!baseURI.endsWith("/")) {
+            baseURI += "/";
         }
 
         Retrofit PlayersServiceRetrofit = new Retrofit.Builder()
-                .baseUrl(uri)
+                .baseUrl(baseURI)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)
                 .build();
         return PlayersServiceRetrofit.create(PlayersAPI.class);
+    }
+
+    public BoardsAPI getBoardsAPI(String baseURI) {
+        if (!baseURI.endsWith("/")) {
+            baseURI += "/";
+        }
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseURI)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(httpClient)
+                .build();
+        return retrofit.create(BoardsAPI.class);
     }
 }

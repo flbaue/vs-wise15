@@ -1,6 +1,5 @@
 package de.hawhamburg.vs.wise15.superteam.client.worker;
 
-import de.hawhamburg.vs.wise15.superteam.client.api.GamesAPI;
 import de.hawhamburg.vs.wise15.superteam.client.callback.CallbackABC;
 import de.hawhamburg.vs.wise15.superteam.client.model.Components;
 import de.hawhamburg.vs.wise15.superteam.client.model.Game;
@@ -17,9 +16,9 @@ public class AddPlayerWorker extends SwingWorker<Boolean, Void> {
 
 
     private final Components components;
-    private final Game game;
     private final Player player;
     private final CallbackABC<Game, Player, Exception> callback;
+    private Game game;
     private Exception e;
 
     public AddPlayerWorker(Components components, Game game, Player player, CallbackABC<Game, Player, Exception> callback) {
@@ -40,7 +39,10 @@ public class AddPlayerWorker extends SwingWorker<Boolean, Void> {
                     player.getUri()
             ).execute();
 
-            return response.isSuccess();
+            Response<Game> gameResponse = components.getGamesAPI().byId(game.getGameid()).execute();
+            this.game.setPlayers(gameResponse.body().getPlayers());
+
+            return response.isSuccess() && gameResponse.isSuccess();
 
         } catch (Exception e) {
             this.e = e;

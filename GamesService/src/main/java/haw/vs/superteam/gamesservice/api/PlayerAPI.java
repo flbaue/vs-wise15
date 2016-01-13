@@ -1,6 +1,5 @@
 package haw.vs.superteam.gamesservice.api;
 
-import haw.vs.superteam.gamesservice.model.Command;
 import haw.vs.superteam.gamesservice.model.Event;
 import retrofit.Call;
 import retrofit.http.Body;

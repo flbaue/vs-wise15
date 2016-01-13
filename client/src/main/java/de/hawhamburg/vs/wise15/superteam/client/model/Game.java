@@ -42,24 +42,24 @@ public class Game {
         return players;
     }
 
+    public void setPlayers(PlayerCollection players) {
+        this.players = players;
+    }
 
     public boolean isStarted() {
 
         return started;
     }
 
-
     public String getUri() {
 
         return uri;
     }
 
-
     public Components getComponents() {
 
         return components;
     }
-
 
     @Override
     public String toString() {
