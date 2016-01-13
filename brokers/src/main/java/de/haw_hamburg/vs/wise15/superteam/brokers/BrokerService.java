@@ -100,9 +100,10 @@ public class BrokerService {
                 .setSSLSocketFactory(sslsf)
                 .build();
         Unirest.setHttpClient(httpclient);
-        Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
+        HttpResponse<String> s = Unirest.post("https://vs-docker.informatik.haw-hamburg.de/ports/8053/services")
                 .header("Content-Type", "application/json")
                 .body(json.toString()).asString();
+        System.out.println(s.getStatus());
     }
 
     //delete http://localhost:4567/broker/:gameid/places/:placeid/hypothecarycredit
